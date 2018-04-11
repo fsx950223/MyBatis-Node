@@ -1259,7 +1259,7 @@ var GerenciadorDeMapeamentos = (function () {
 
         var dominio = require('domain').active;
 
-        console.log(sql);
+        //console.log(sql);
 
         this.conexao(function(connection) {
             connection.query(comandoSql.sql, comandoSql.parametros, dominio.intercept(function (rows, fields,err) {
@@ -1275,39 +1275,22 @@ var GerenciadorDeMapeamentos = (function () {
 
     };
 
-    GerenciadorDeMapeamentos.prototype.selecioneUm = function (nomeCompleto, dados, callback) {
+    GerenciadorDeMapeamentos.prototype.selectOne = function (nomeCompleto, dados, callback) {
         // console.log('buscando ' + nomeCompleto);
-        this.selecioneVarios(nomeCompleto, dados, function (objetos) {
-            if (objetos.length == 0)
-                return callback(null);
-
-            if (objetos.length > 1) {
-                return callback(null);
-            }
-
-            callback(objetos[0]);
+        this.selectList(nomeCompleto, dados, function (objetos) {
+            if (objetos.length == 1)
+                callback(objetos[0]);
+            callback(null);
         });
     };
 
-    GerenciadorDeMapeamentos.prototype.selecioneVarios = function (nomeCompleto, dados, callback) {
+    GerenciadorDeMapeamentos.prototype.selectList = function (nomeCompleto, dados, callback) {
         var me = this;
         var no = this.obtenhaNo(nomeCompleto);
 
         var comandoSql = new ComandoSql();
 
         no.obtenhaSql(comandoSql, dados);
-
-        var nomeResultMap = no.resultMap;
-
-        if (no.resultMap.indexOf(".") == -1) {
-            nomeResultMap = no.mapeamento.nome + "." + no.resultMap;
-        }
-
-        var noResultMap = this.obtenhaResultMap(nomeResultMap);
-
-        if (no.resultMap && noResultMap == null) {
-            throw new Error("Result map '" + no.resultMap + "' não encontrado");
-        }
 
 
         var dominio = require('domain').active;
@@ -1320,24 +1303,7 @@ var GerenciadorDeMapeamentos = (function () {
                     console.log(err.message);
                     throw err;
                 }
-
-                if (callback && noResultMap) {
-                    callback(noResultMap.crieObjetos(me, rows));
-                } else {
-                    if (no.javaType == 'String' || no.javaType == 'int' || no.javaType == 'long' || no.javaType == 'java.lang.Long') {
-                        var objetos = [];
-                        for (var i in rows) {
-                            var row = rows[i];
-
-                            for (var j in row) {
-                                objetos.push(row[j]);
-                                break;
-                            }
-                        }
-
-                        callback(objetos);
-                    }
-                }
+                callback(rows)
             }));
 
         })
@@ -1359,7 +1325,6 @@ var GerenciadorDeMapeamentos = (function () {
     };
 
     GerenciadorDeMapeamentos.prototype.conexao=function(callback){
-        this.contexto()
         return this.contexto().obtenhaConexao(callback);
     }
 

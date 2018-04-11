@@ -1,4 +1,4 @@
-var uuid = require('node-uuid');
+var uuid = require('uuid');
 var domain = require('domain');
 
 
@@ -9,7 +9,7 @@ function Contexto() {
 
 Contexto.prototype = {
 
-    carregou :function(connection){
+    carregou (connection){
         this.conexao = connection ;
         this.carregando = false;
         for(var i=0; i< this.callbacks.length; i++) {
@@ -17,9 +17,8 @@ Contexto.prototype = {
         }
     },
 
-    obtenhaConexao: function(callback){
+    obtenhaConexao(callback){
         var me = this;
-
         if(this.conexao) {
             return callback(this.conexao);
         }
@@ -37,7 +36,7 @@ Contexto.prototype = {
         });
     },
 
-    inicieTransacao : function(callback){
+    inicieTransacao(callback){
         var me = this;
 
         var dominio = require('domain').active;
@@ -59,7 +58,7 @@ Contexto.prototype = {
     },
 
 
-    release:function(){
+    release(){
         if(this.conexao){
 
             this.conexao.release();
@@ -67,7 +66,7 @@ Contexto.prototype = {
 
     },
 
-    commit:function(callback){
+    commit(callback){
         if(!this.conexao) return;
 
         var me = this;
@@ -84,7 +83,7 @@ Contexto.prototype = {
         }));
     },
 
-    roolback:function(){
+    roolback(){
         if(!this.conexao) return
 
         this.conexao.rollback(function() {
