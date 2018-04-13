@@ -17,6 +17,7 @@ var moment = require('moment');
 var DOMParser = require('xmldom').DOMParser;
 var s = require('string');
 var Context = require('./Context');
+const context = new Context()
 function SqlCommand() {
     this.sql = '';
     this.parameters = [];
@@ -24,16 +25,16 @@ function SqlCommand() {
 SqlCommand.prototype.addParameter = function (value) {
     this.parameters.push(value);
 };
-var Atthe = function () {
-    function Atthe(id, mapping) {
+var No = function () {
+    function No(id, mapping) {
         this.id = id;
         this.mapeamento = mapping;
         this.filhos = [];
     }
-    Atthe.prototype.add = function (atthe) {
-        this.filhos.push(atthe);
+    No.prototype.add = function (no) {
+        this.filhos.push(no);
     };
-    Atthe.prototype.print = function () {
+    No.prototype.print = function () {
         if (this.id)
             console.log(this.id);
         for (var i in this.filhos) {
@@ -41,14 +42,14 @@ var Atthe = function () {
             noson.print();
         }
     };
-    Atthe.prototype.getSql = function (sqlcommand, data) {
+    No.prototype.getSql = function (sqlcommand, data) {
         for (var i in this.filhos) {
             var noson = this.filhos[i];
             noson.getSql(sqlcommand, data);
         }
         return sqlcommand;
     };
-    Atthe.prototype.getValue = function (data, path) {
+    No.prototype.getValue = function (data, path) {
         var i, len = path.length;
         for (i = 0; typeof givesyou === 'object' && i < len; ++i) {
             if (givesyou)
@@ -56,10 +57,10 @@ var Atthe = function () {
         }
         return givesyou;
     };
-    Atthe.prototype.getFullName = function () {
+    No.prototype.getFullName = function () {
         return this.mapeamento.name + '.' + this.id;
     };
-    Atthe.prototype.processexpression = function (text, sqlcommand, data) {
+    No.prototype.processexpression = function (text, sqlcommand, data) {
         var myArray;
         var regex = new RegExp('#{([a-z.A-Z0-9_]+)}', 'ig');
         var expression = text;
@@ -88,9 +89,9 @@ var Atthe = function () {
         }
         return expression;
     };
-    return Atthe;
+    return No;
 }();
-exports.No = Atthe;
+exports.No = No;
 var NoSelect = function (_super) {
     __extends(NoSelect, _super);
     function NoSelect(id, resultMap, javaType, mapping) {
@@ -99,7 +100,7 @@ var NoSelect = function (_super) {
         this.javaType = javaType;
     }
     return NoSelect;
-}(Atthe);
+}(No);
 exports.NoSelect = NoSelect;
 var NoString = function (_super) {
     __extends(NoString, _super);
@@ -114,24 +115,24 @@ var NoString = function (_super) {
         sqlcommand.sql += _super.prototype.processexpression.call(this, this.texto, sqlcommand, data) + ' ';
     };
     return NoString;
-}(Atthe);
+}(No);
 exports.NoString = NoString;
 var NoChoose = function (_super) {
     __extends(NoChoose, _super);
     function NoChoose(mapping) {
         _super.call(this, '', mapping);
     }
-    NoChoose.prototype.add = function (atthe) {
-        _super.prototype.add.call(this, atthe);
-        if (atthe instanceof NoOtherwise) {
-            this.noOtherwise = atthe;
+    NoChoose.prototype.add = function (no) {
+        _super.prototype.add.call(this, no);
+        if (no instanceof NoOtherwise) {
+            this.noOtherwise = no;
         }
     };
     NoChoose.prototype.getSql = function (sqlcommand, data) {
         for (var i in this.filhos) {
-            var atthe = this.filhos[i];
-            if (atthe instanceof Nowhen) {
-                var nowhen = atthe;
+            var no = this.filhos[i];
+            if (no instanceof Nowhen) {
+                var nowhen = no;
                 var expression = nowhen.expressionTest.replace('#{', 'dados.').replace('}', '');
                 try {
                     eval('if( ' + expression + ' ) dados.valueExpression = true; else dados.valueExpression = false;');
@@ -149,7 +150,7 @@ var NoChoose = function (_super) {
         return '';
     };
     return NoChoose;
-}(Atthe);
+}(No);
 exports.NoChoose = NoChoose;
 var Nowhen = function (_super) {
     __extends(Nowhen, _super);
@@ -175,7 +176,7 @@ var Nowhen = function (_super) {
         console.log('when(' + this.expressionTest + '): ' + this.texto);
     };
     return Nowhen;
-}(Atthe);
+}(No);
 exports.NoWhen = Nowhen;
 var NoForEach = function (_super) {
     __extends(NoForEach, _super);
@@ -227,7 +228,7 @@ var NoForEach = function (_super) {
         return sqlcommand;
     };
     return NoForEach;
-}(Atthe);
+}(No);
 exports.NoForEach = NoForEach;
 var NoIf = function (_super) {
     __extends(NoIf, _super);
@@ -264,7 +265,7 @@ var NoIf = function (_super) {
         _super.prototype.getSql.call(this, sqlcommand, data) + ' ';
     };
     return NoIf;
-}(Atthe);
+}(No);
 exports.NoIf = NoIf;
 var NoOtherwise = function (_super) {
     __extends(NoOtherwise, _super);
@@ -296,7 +297,7 @@ var NoOtherwise = function (_super) {
         sqlcommand.sql += expression + ' ';
     };
     return NoOtherwise;
-}(Atthe);
+}(No);
 exports.NoOtherwise = NoOtherwise;
 var NoProperty = function () {
     function NoProperty(name, column, prefix) {
@@ -340,13 +341,13 @@ var Noaffiliation = function (_super) {
         return this.resultMap;
     };
     Noaffiliation.prototype.createObject = function (templateManager, objectcache, ancestorCache, object, record, keyphrase, prefix) {
-        var atthe = templateManager.getResultMap(this.resultMap);
-        if (!atthe)
+        var no = templateManager.getResultMap(this.resultMap);
+        if (!no)
             throw new Error('Nenhum nó com name foi encontrado: ' + this.resultMap);
-        var keyobject = atthe.getChave(record, keyphrase, this.prefix || prefix);
-        var combinedkey = atthe.getChaveCombined(keyphrase, keyobject);
+        var keyobject = no.getChave(record, keyphrase, this.prefix || prefix);
+        var combinedkey = no.getChaveCombined(keyphrase, keyobject);
         var objectknown = objectcache[combinedkey] != null;
-        var objectCollection = atthe.createObject(templateManager, objectcache, ancestorCache, record, keyphrase, this.prefix || prefix);
+        var objectCollection = no.createObject(templateManager, objectcache, ancestorCache, record, keyphrase, this.prefix || prefix);
         if (objectCollection == null || objectknown == true)
             return;
         object[this.name] = objectCollection;
@@ -366,11 +367,11 @@ var NoPropriacaoColecao = function (_super) {
         console.log('colecao(' + this.name + separator + this.column + ' -> ' + this.resultMap);
     };
     NoPropriacaoColecao.prototype.createObject = function (templateManager, objectcache, ancestorCache, object, record, keyphrase, prefix) {
-        var atthe = templateManager.getResultMap(this.resultMap);
-        var keyobject = atthe.getChave(record, keyphrase, this.prefix || prefix);
+        var no = templateManager.getResultMap(this.resultMap);
+        var keyobject = no.getChave(record, keyphrase, this.prefix || prefix);
         var combinedkey = keyphrase + separator + keyobject;
         var objectknown = objectcache[combinedkey] != null;
-        var objectCollection = atthe.createObject(templateManager, objectcache, ancestorCache, record, keyphrase, this.prefix || prefix);
+        var objectCollection = no.createObject(templateManager, objectcache, ancestorCache, record, keyphrase, this.prefix || prefix);
         if (object[this.name] == null)
             object[this.name] = [];
         if (objectCollection == null || objectknown == true)
@@ -476,27 +477,6 @@ var NoResultMap = function (_super) {
             ancestorCache[keyobject] = instance;
             this.processCollections(templateManager, objectcache, ancestorCache, instance, record, combinedkey, prefix);
             delete ancestorCache[keyobject];
-        } else {
-            var Firstname = this.getNameModel(record, prefix), idChave = keyobject && keyobject.split(separator)[1];
-            var model = templateManager.getModel(Firstname);
-            model = model[Firstname];
-            if (model == null) {
-                throw new Error('Classe ' + Firstname + '.' + Firstname + ' não encontrada');
-            }
-            var instance = Object.create(model.prototype);
-            instance.constructor.apply(instance, []);
-            var foundValues = false;
-            if (keyobject)
-                ancestorCache[keyobject] = instance;
-            foundValues = this.atribuaPropriedadesSimples(instance, record, prefix);
-            if (keyobject != null) {
-                foundValues = this.processCollections(templateManager, objectcache, ancestorCache, instance, record, combinedkey, prefix) || foundValues;
-            }
-            delete ancestorCache[keyobject];
-            if (!foundValues || idChave && instance.id && idChave != instance.id.toString())
-                return null;
-            if (combinedkey && foundValues && instance.id != null && combinedkey.indexOf('null') < 0)
-                objectcache[combinedkey] = instance;
         }
         return instance;
     };
@@ -569,7 +549,7 @@ var NoResultMap = function (_super) {
         return foundValues;
     };
     return NoResultMap;
-}(Atthe);
+}(No);
 exports.NoResultMap = NoResultMap;
 var NoDiscriminator = function () {
     function NoDiscriminator(javatype, column) {
@@ -610,53 +590,53 @@ var Main = function () {
     Main.prototype.leiaNoDiscriminator = function (noXml, noResultMap) {
         var noDiscriminator = new NoDiscriminator(noXml.getAttributeNode('javaType').value, noXml.getAttributeNode('column').value);
         for (var i = 0; i < noXml.childNodes.length; i++) {
-            var atthe = noXml.childNodes[i];
-            if (atthe.nodeName == 'case') {
-                var value = atthe.getAttributeNode('value').value;
-                var type = atthe.getAttributeNode('resultType').value;
+            var no = noXml.childNodes[i];
+            if (no.nodeName == 'case') {
+                var value = no.getAttributeNode('value').value;
+                var type = no.getAttributeNode('resultType').value;
                 var nochase = new NoCaseDiscriminator(value, type);
                 noDiscriminator.add(nochase);
             }
         }
         return noDiscriminator;
     };
-    Main.prototype.leiaAssociationProperty = function (atthe, noResultMap) {
-        var columnattribute = atthe.getAttributeNode('column');
+    Main.prototype.leiaAssociationProperty = function (no, noResultMap) {
+        var columnattribute = no.getAttributeNode('column');
         var valueColumn = '';
         if (columnattribute)
             valorColuna = columnattribute.value;
-        var resultMap = atthe.getAttributeNode('resultMap').value;
+        var resultMap = no.getAttributeNode('resultMap').value;
         if (resultMap.indexOf('.') == -1) {
             resultMap = noResultMap.mapeamento.name + '.' + resultMap;
         }
         var columnPrefix = null;
-        if (atthe.getAttributeNode('columnPrefix'))
-            columnPrefix = atthe.getAttributeNode('columnPrefix').value;
-        noResultMap.add(new Noaffiliation(atthe.getAttributeNode('property').value, valueColumn, columnPrefix, resultMap));
+        if (no.getAttributeNode('columnPrefix'))
+            columnPrefix = no.getAttributeNode('columnPrefix').value;
+        noResultMap.add(new Noaffiliation(no.getAttributeNode('property').value, valueColumn, columnPrefix, resultMap));
     };
-    Main.prototype.readCollectionProperty = function (atthe, noResultMap) {
+    Main.prototype.readCollectionProperty = function (no, noResultMap) {
         var valueResultMap = '';
-        if (atthe.getAttributeNode('resultMap')) {
-            valorResultMap = atthe.getAttributeNode('resultMap').value;
+        if (no.getAttributeNode('resultMap')) {
+            valorResultMap = no.getAttributeNode('resultMap').value;
         }
         var valueOfType = '';
-        if (atthe.getAttributeNode('ofType')) {
-            valorOfType = atthe.getAttributeNode('ofType').value;
+        if (no.getAttributeNode('ofType')) {
+            valorOfType = no.getAttributeNode('ofType').value;
         }
         var valueColumn = '';
-        if (atthe.getAttributeNode('column'))
-            valorColuna = atthe.getAttributeNode('column').value;
+        if (no.getAttributeNode('column'))
+            valorColuna = no.getAttributeNode('column').value;
         var valuetypeJava = '';
-        if (atthe.getAttributeNode('javaType'))
-            valorTipoJava = atthe.getAttributeNode('javaType').value;
+        if (no.getAttributeNode('javaType'))
+            valorTipoJava = no.getAttributeNode('javaType').value;
         var columnPrefix = null;
-        if (atthe.getAttributeNode('columnPrefix'))
-            columnPrefix = atthe.getAttributeNode('columnPrefix').value;
-        noResultMap.add(new NoPropriacaoColecao(atthe.getAttributeNode('property').value, valueColumn, columnPrefix, valueResultMap, valueOfType, valuetypeJava));
+        if (no.getAttributeNode('columnPrefix'))
+            columnPrefix = no.getAttributeNode('columnPrefix').value;
+        noResultMap.add(new NoPropriacaoColecao(no.getAttributeNode('property').value, valueColumn, columnPrefix, valueResultMap, valueOfType, valuetypeJava));
     };
-    Main.prototype.readResultProperty = function (atthe, noResultMap) {
+    Main.prototype.readResultProperty = function (no, noResultMap) {
         var type = '';
-        noResultMap.add(new NoProperty(atthe.getAttributeNode('property').value, atthe.getAttributeNode('column').value));
+        noResultMap.add(new NoProperty(no.getAttributeNode('property').value, no.getAttributeNode('column').value));
     };
     Main.prototype.readResultMap = function (name, noXmlResultMap, mapping) {
         var name = noXmlResultMap.getAttributeNode('id').value;
@@ -664,19 +644,19 @@ var Main = function () {
         var noResultMap = new NoResultMap(name, type, mapping);
         var ownsId = false;
         for (var i = 0; i < noXmlResultMap.childNodes.length; i++) {
-            var atthe = noXmlResultMap.childNodes[i];
-            if (atthe.nodeName == 'id') {
-                var propertyId = new NoPropriedadeId(atthe.getAttributeNode('property').value, atthe.getAttributeNode('column').value);
+            var no = noXmlResultMap.childNodes[i];
+            if (no.nodeName == 'id') {
+                var propertyId = new NoPropriedadeId(no.getAttributeNode('property').value, no.getAttributeNode('column').value);
                 noResultMap.setIdProperty(propertyId);
                 ownsId = true;
-            } else if (atthe.nodeName == 'result') {
-                this.readResultProperty(atthe, noResultMap);
-            } else if (atthe.nodeName == 'association') {
-                this.leiaAssociationProperty(atthe, noResultMap);
-            } else if (atthe.nodeName == 'collection') {
-                this.readCollectionProperty(atthe, noResultMap);
-            } else if (atthe.nodeName == 'discriminator') {
-                var noDiscriminator = this.leiaNoDiscriminator(atthe, noResultMap);
+            } else if (no.nodeName == 'result') {
+                this.readResultProperty(no, noResultMap);
+            } else if (no.nodeName == 'association') {
+                this.leiaAssociationProperty(no, noResultMap);
+            } else if (no.nodeName == 'collection') {
+                this.readCollectionProperty(no, noResultMap);
+            } else if (no.nodeName == 'discriminator') {
+                var noDiscriminator = this.leiaNoDiscriminator(no, noResultMap);
                 noResultMap.defineDiscriminator(noDiscriminator);
             }
         }
@@ -702,53 +682,53 @@ var Main = function () {
                 valueJavaType = noJavaType.value;
             incharge = new NoSelect(name, valueResultMap, valueJavaType, mapping);
         } else {
-            incharge = new Atthe(name, mapping);
+            incharge = new No(name, mapping);
         }
         for (var i = 0; i < gchild.childNodes.length; i++) {
-            var atthe = gchild.childNodes[i];
-            if (atthe.nodeName == 'choose') {
-                this.readChoose('choose', atthe, incharge, mapping);
-            } else if (atthe.nodeName == 'if') {
-                this.readit('choose', atthe, incharge, mapping);
-            } else if (atthe.nodeName == 'foreach') {
-                this.readForEach('foreach', atthe, incharge, mapping);
+            var no = gchild.childNodes[i];
+            if (no.nodeName == 'choose') {
+                this.readChoose('choose', no, incharge, mapping);
+            } else if (no.nodeName == 'if') {
+                this.readit('choose', no, incharge, mapping);
+            } else if (no.nodeName == 'foreach') {
+                this.readForEach('foreach', no, incharge, mapping);
             } else {
-                if (atthe.hasChildNodes() == false) {
-                    var noString = new NoString(atthe.textContent, mapping);
+                if (no.hasChildNodes() == false) {
+                    var noString = new NoString(no.textContent, mapping);
                     incharge.add(noString);
                 }
             }
         }
         return incharge;
     };
-    Main.prototype.readForEach = function (name, atthe, nomain, mapping) {
+    Main.prototype.readForEach = function (name, no, nomain, mapping) {
         var valueSeparador = '';
-        if (atthe.getAttributeNode('separator')) {
-            valueSeparador = atthe.getAttributeNode('separator').value;
+        if (no.getAttributeNode('separator')) {
+            valueSeparador = no.getAttributeNode('separator').value;
         }
         var valueAverage = '';
-        if (atthe.getAttributeNode('open')) {
-            valueAverage = atthe.getAttributeNode('open').value;
+        if (no.getAttributeNode('open')) {
+            valueAverage = no.getAttributeNode('open').value;
         }
         var closingvalue = '';
-        if (atthe.getAttributeNode('close')) {
-            closingvalue = atthe.getAttributeNode('close').value;
+        if (no.getAttributeNode('close')) {
+            closingvalue = no.getAttributeNode('close').value;
         }
         var valueIndex = '';
-        if (atthe.getAttributeNode('index')) {
-            valueIndex = atthe.getAttributeNode('index').value;
+        if (no.getAttributeNode('index')) {
+            valueIndex = no.getAttributeNode('index').value;
         }
         var valueCollection = '';
-        if (atthe.getAttributeNode('collection')) {
-            valueCollection = atthe.getAttributeNode('collection').value;
+        if (no.getAttributeNode('collection')) {
+            valueCollection = no.getAttributeNode('collection').value;
         }
-        var noday = new NoForEach(atthe.getAttributeNode('item').value, valueIndex, valueSeparador, valueAverage, closingvalue, atthe.textContent, valueCollection, mapping);
+        var noday = new NoForEach(no.getAttributeNode('item').value, valueIndex, valueSeparador, valueAverage, closingvalue, no.textContent, valueCollection, mapping);
         nomain.add(noday);
     };
-    Main.prototype.readit = function (name, atthe, nomain, mapping) {
-        var noIf = new NoIf(atthe.getAttributeNode('test').value, atthe.childNodes[0].toString(), mapping);
-        for (var i = 0; i < atthe.childNodes.length; i++) {
-            var noson = atthe.childNodes[i];
+    Main.prototype.readit = function (name, no, nomain, mapping) {
+        var noIf = new NoIf(no.getAttributeNode('test').value, no.childNodes[0].toString(), mapping);
+        for (var i = 0; i < no.childNodes.length; i++) {
+            var noson = no.childNodes[i];
             if (noson.nodeName == 'choose') {
                 this.readChoose('choose', noson, noIf, mapping);
             } else if (noson.nodeName == 'if') {
@@ -764,24 +744,24 @@ var Main = function () {
         }
         nomain.add(noIf);
     };
-    Main.prototype.readChoose = function (name, atthe, nomain, mapping) {
+    Main.prototype.readChoose = function (name, no, nomain, mapping) {
         var nohead = new NoChoose(mapping);
-        for (var i = 0; i < atthe.childNodes.length; i++) {
-            var children = atthe.childNodes;
+        for (var i = 0; i < no.childNodes.length; i++) {
+            var children = no.childNodes;
             var noson = children[i];
             if (noson.nodeName == 'when') {
-                nohead.add(this.readNoWhen('when', noson, atthe, mapping));
+                nohead.add(this.readNoWhen('when', noson, no, mapping));
             } else if (noson.nodeName == 'otherwise') {
                 nohead.add(new NoOtherwise(noson.childNodes[0].toString(), mapping));
             }
         }
         nomain.add(nohead);
     };
-    Main.prototype.readNoWhen = function (name, atthe, noPrivate, mapping) {
-        var expressionTest = atthe.getAttributeNode('test').value;
+    Main.prototype.readNoWhen = function (name, no, noPrivate, mapping) {
+        var expressionTest = no.getAttributeNode('test').value;
         var nowhen = new Nowhen(expressionTest, '', mapping);
-        for (var i = 0; i < atthe.childNodes.length; i++) {
-            var noson = atthe.childNodes[i];
+        for (var i = 0; i < no.childNodes.length; i++) {
+            var noson = no.childNodes[i];
             if (noson.nodeName == 'choose') {
                 this.readChoose('choose', noson, nowhen, mapping);
             } else if (noson.nodeName == 'if') {
@@ -823,21 +803,7 @@ var Main = function () {
                 }
             });
         };
-        var ext = global.domainExt || '.js', directoryDomain = global.domainDir || './domain';
-        walk(directoryDomain, function (err, files) {
-            for (var i in files) {
-                var archive = files[i];
-                if (archive.indexOf(ext) == -1)
-                    continue;
-                var filename = path.basename(archive);
-                var nameClassDomain = filename.replace(ext, '');
-                var PATHfile = path.join(path.resolve('.'), archive);
-                if (!fs.existsSync(PATHfile))
-                    throw new Error('Arquivo não encontrado:' + PATHfile);
-                var model = require(path.join(path.resolve('.'), archive));
-                templateManager.addModel(nameClassDomain, model);
-            }
-        });
+        var ext = global.domainExt || '.js'
         var files = fs.readdirSync(dir_xml);
         for (var i in files) {
             var archive = files[i];
@@ -859,8 +825,8 @@ var Main = function () {
         for (var i = 0; i < we.length; i++) {
             var noXml = we[i];
             if (noXml.nodeName != '#text' && noXml.nodeName != '#comment') {
-                var atthe = this.read(noXml.nodeName, noXml, mapping);
-                mapping.add(atthe);
+                var no = this.read(noXml.nodeName, noXml, mapping);
+                mapping.add(no);
             }
         }
         return mapping;
@@ -872,16 +838,7 @@ var TemplateMapManager = function () {
     function TemplateMapManager() {
         this.mappings = [];
         this.mapMapping = {};
-        this.models = {};
     }
-    TemplateMapManager.prototype.getModel = function (name) {
-        return this.models[name];
-    };
-    TemplateMapManager.prototype.addModel = function (nameClassDomain, classe) {
-        if (this.models[nameClassDomain] != null)
-            return;
-        this.models[nameClassDomain] = classe;
-    };
     TemplateMapManager.prototype.add = function (mapping) {
         if (mapping == null)
             return;
@@ -905,52 +862,49 @@ var TemplateMapManager = function () {
         return mapping.getNo(idon);
     };
     TemplateMapManager.prototype.insert = function (fullname, object, callback) {
-        var me = this;
-        var atthe = this.getNo(fullname);
+
+        var no = this.getNo(fullname);
         var sqlcommand = new SqlCommand();
-        atthe.getSql(sqlcommand, object);
-        var domain = require('domain').active;
+        no.getSql(sqlcommand, object);
         this.connection(function (connection) {
-            connection.query(sqlcommand.sql, sqlcommand.parameters, domain.intercept(function (rows, fields, err) {
+            connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
                 if (rows.insertId) {
                     object.id = rows.insertId;
                 }
                 if (callback) {
                     callback();
                 }
-            }));
+            });
         });
     };
     TemplateMapManager.prototype.update = function (fullname, object, callback) {
-        var me = this;
-        var atthe = this.getNo(fullname);
+
+        var no = this.getNo(fullname);
         var sqlcommand = new SqlCommand();
-        var sql = atthe.getSql(sqlcommand, object);
-        var domain = require('domain').active;
+        var sql = no.getSql(sqlcommand, object);
+
         this.connection(function (connection) {
-            connection.query(sqlcommand.sql, sqlcommand.parameters, domain.intercept(function (rows, fields, err) {
+            connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
                 if (err)
                     throw err;
                 if (callback) {
                     callback(rows.affectedRows);
                 }
-            }));
+            });
         });
     };
     TemplateMapManager.prototype.remove = function (fullname, object, callback) {
-        var me = this;
-        var atthe = this.getNo(fullname);
+        var no = this.getNo(fullname);
         var sqlcommand = new SqlCommand();
-        var sql = atthe.getSql(sqlcommand, object);
-        var domain = require('domain').active;
+        var sql = no.getSql(sqlcommand, object);
         this.connection(function (connection) {
-            connection.query(sqlcommand.sql, sqlcommand.parameters, domain.intercept(function (rows, fields, err) {
+            connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
                 if (err)
                     throw err;
                 if (callback) {
                     callback(rows.affectedRows);
                 }
-            }));
+            });
         });
     };
     TemplateMapManager.prototype.selectOne = function (fullname, data, callback) {
@@ -961,20 +915,18 @@ var TemplateMapManager = function () {
         });
     };
     TemplateMapManager.prototype.selectList = function (fullname, data, callback) {
-        var me = this;
-        var atthe = this.getNo(fullname);
+
+        var no = this.getNo(fullname);
         var sqlcommand = new SqlCommand();
-        atthe.getSql(sqlcommand, data);
-        var domain = require('domain').active;
+        no.getSql(sqlcommand, data);
         this.connection(function (connection) {
-            connection.query(sqlcommand.sql, sqlcommand.parameters, domain.intercept(function (rows, fields, err) {
+            connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
                 if (err) {
                     console.log(err);
-                    console.log(err.message);
                     throw err;
                 }
                 callback(rows);
-            }));
+            });
         });
     };
     TemplateMapManager.prototype.create = function () {
@@ -983,8 +935,7 @@ var TemplateMapManager = function () {
         return instance;
     };
     TemplateMapManager.prototype.context = function () {
-        var domain = require('domain').active;
-        return domain.context;
+        return context;
     };
     TemplateMapManager.prototype.connection = function (callback) {
         return this.context().getConnected(callback);

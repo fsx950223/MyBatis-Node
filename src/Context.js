@@ -29,13 +29,12 @@ Context.prototype = {
     },
     initiationTranslation(callback) {
         var me = this;
-        var domain = require('domain').active;
         function withchange(callback) {
-            me.connection.beginTransaction(domain.intercept(function () {
+            me.connection.beginTransaction(function () {
                 return callback(me.connection, function (success, error) {
                     me.commit(success);
                 });
-            }));
+            });
         }
         if (this.connection)
             return withchange(callback);
@@ -52,8 +51,7 @@ Context.prototype = {
         if (!this.connection)
             return;
         var me = this;
-        var domain = require('domain').active;
-        me.connection.commit(domain.intercept(function (result, err) {
+        me.connection.commit(function (result, err) {
             if (err) {
                 me.connection.rollback(function () {
                     if (callback)
@@ -61,7 +59,7 @@ Context.prototype = {
                 });
             } else if (callback)
                 callback(true);
-        }));
+        });
     },
     roolback() {
         if (!this.connection)
