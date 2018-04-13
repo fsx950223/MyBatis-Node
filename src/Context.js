@@ -58,7 +58,7 @@ Context.prototype = {
                 callback(true);
         });
     },
-    roolback() {
+    rollback() {
         if (!this.connection)
             return;
         this.connection.rollback(function () {

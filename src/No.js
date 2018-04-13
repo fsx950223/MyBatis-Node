@@ -1,30 +1,22 @@
 var dir_xml = '', separator = ':::';
-var __extends = this.__extends || function (d, B) {
-    for (var P in B)
-        if (B.hasOwnProperty(P))
-            d[P] = B[P];
-    function __() {
-        this.constructor = d;
-    }
-    __.prototype = B.prototype;
-    d.prototype = new __();
-};
-var fs = require('fs');
-var path = require('path');
-var vm = require('vm');
-var useful = require('util');
-var moment = require('moment');
-var DOMParser = require('xmldom').DOMParser;
-var s = require('string');
-var Context = require('./Context');
+const fs = require('fs');
+const path = require('path');
+const util = require('util');
+const moment = require('moment');
+const DOMParser = require('xmldom').DOMParser;
+const s = require('string');
+const Context = require('./Context');
 const context = new Context()
-function SqlCommand() {
-    this.sql = '';
-    this.parameters = [];
+class SqlCommand{
+    constructor(){
+        this.sql = '';
+        this.parameters = [];
+    }
+    addParameter (value) {
+        this.parameters.push(value);
+    }
 }
-SqlCommand.prototype.addParameter = function (value) {
-    this.parameters.push(value);
-};
+
 var No = function () {
     function No(id, mapping) {
         this.id = id;
@@ -61,7 +53,7 @@ var No = function () {
         return this.mapping.name + '.' + this.id;
     };
     No.prototype.processexpression = function (text, sqlcommand, data) {
-        var myArray;
+        let myArray;
         var regex = new RegExp('#{([a-z.A-Z0-9_]+)}', 'ig');
         var expression = text;
         while ((myArray = regex.exec(text)) !== null) {
@@ -79,11 +71,11 @@ var No = function () {
             } else if (typeof propertyvalue == 'boolean') {
                 expression = expression.replace(stretch, '?');
                 sqlcommand.addParameter(propertyvalue);
-            } else if (useful.isDate(propertyvalue)) {
+            } else if (util.isDate(propertyvalue)) {
                 var value = moment(propertyvalue).format('YYYY-MM-DD HH:mm:ss');
                 expression = expression.replace(stretch, '?');
                 sqlcommand.addParameter(value);
-            } else if (useful.isArray(propertyvalue)) {
+            } else if (util.isArray(propertyvalue)) {
                 throw new Error('Não pode traduzir trecho ' + stretch + ' pela coleção: ' + propertyvalue);
             }
         }
@@ -100,16 +92,7 @@ class NoSelect extends No{
     }
 }
 exports.NoSelect = NoSelect;
-// var NoSelect = function (_super) {
-//     __extends(NoSelect, _super);
-//     function NoSelect(id, resultMap, javaType, mapping) {
-//         _super.call(this, id, mapping);
-//         this.resultMap = resultMap;
-//         this.javaType = javaType;
-//     }
-//     return NoSelect;
-// }(No);
-//exports.NoSelect = NoSelect;
+
 class NoString extends No{
     constructor(text, mapping) {
         super('', mapping);
@@ -123,21 +106,7 @@ class NoString extends No{
     }
 }
 exports.NoString = NoString;
-// var NoString = function (_super) {
-//     __extends(NoString, _super);
-//     function NoString(text, mapping) {
-//         _super.call(this, '', mapping);
-//         this.text = text.trim();
-//     }
-//     NoString.prototype.print = function () {
-//         console.log(this.text);
-//     };
-//     NoString.prototype.getSql = function (sqlcommand, data) {
-//         sqlcommand.sql += _super.prototype.processexpression.call(this, this.text, sqlcommand, data) + ' ';
-//     };
-//     return NoString;
-// }(No);
-// exports.NoString = NoString;
+
 class NoChoose extends No{
     constructor(mapping){
         super('', mapping)
@@ -170,56 +139,21 @@ class NoChoose extends No{
         return '';
     }
 }
-// var NoChoose = function (_super) {
-//     __extends(NoChoose, _super);
-//     function NoChoose(mapping) {
-//         _super.call(this, '', mapping);
-//     }
-//     NoChoose.prototype.add = function (no) {
-//         _super.prototype.add.call(this, no);
-//         if (no instanceof NoOtherwise) {
-//             this.noOtherwise = no;
-//         }
-//     };
-//     NoChoose.prototype.getSql = function (sqlcommand, data) {
-//         for (var i in this.children) {
-//             var no = this.children[i];
-//             if (no instanceof NoWhen) {
-//                 var nowhen = no;
-//                 var expression = nowhen.expressionTest.replace('#{', 'data.').replace('}', '');
-//                 try {
-//                     eval('if( ' + expression + ' ) data.valueExpression = true; else data.valueExpression = false;');
-//                 } catch (err) {
-//                     data.valueExpression = false;
-//                 }
-//                 if (data.valueExpression) {
-//                     return nowhen.getSql(sqlcommand, data);
-//                 }
-//             }
-//         }
-//         if (this.noOtherwise) {
-//             return this.noOtherwise.getSql(sqlcommand, data);
-//         }
-//         return '';
-//     };
-//     return NoChoose;
-// }(No);
+
 exports.NoChoose = NoChoose;
 class NoWhen extends No{
-    constructor(){
+    constructor(expressionTest, text, mapping){
         super('',mapping)
         this.expressionTest = expressionTest;
         this.text = text;
-        var regex = new RegExp('[_a-zA-Z][_a-zA-Z0-9]{0,30}', 'ig');
+        const regex = new RegExp('[_a-zA-Z][_a-zA-Z0-9]{0,30}', 'ig');
         var identifiers = [];
+        let myArray=[]
         while ((myArray = regex.exec(expressionTest)) !== null) {
-            var identifier = myArray[0];
+            const identifier = myArray[0];
             if (identifier == 'null' || identifier == 'true' || identifier == 'false' || identifier == 'and')
                 continue;
             identifiers.push(identifier);
-        }
-        for (var i = 0; i < identifiers.length; i++) {
-            var identifier = identifiers[i];
             this.expressionTest = this.expressionTest.replace(identifier, 'data.' + identifier);
         }
         this.expressionTest = s(this.expressionTest).replaceAll('and', '&&').toString();
@@ -228,31 +162,6 @@ class NoWhen extends No{
         console.log('when(' + this.expressionTest + '): ' + this.text);
     };
 }
-// var NoWhen = function (_super) {
-//     __extends(NoWhen, _super);
-//     function NoWhen(expressionTest, text, mapping) {
-//         _super.call(this, '', mapping);
-//         this.expressionTest = expressionTest;
-//         this.text = text;
-//         var regex = new RegExp('[_a-zA-Z][_a-zA-Z0-9]{0,30}', 'ig');
-//         var identifiers = [];
-//         while ((myArray = regex.exec(expressionTest)) !== null) {
-//             var identifier = myArray[0];
-//             if (identifier == 'null' || identifier == 'true' || identifier == 'false' || identifier == 'and')
-//                 continue;
-//             identifiers.push(identifier);
-//         }
-//         for (var i = 0; i < identifiers.length; i++) {
-//             var identifier = identifiers[i];
-//             this.expressionTest = this.expressionTest.replace(identifier, 'data.' + identifier);
-//         }
-//         this.expressionTest = s(this.expressionTest).replaceAll('and', '&&').toString();
-//     }
-//     NoWhen.prototype.print = function () {
-//         console.log('when(' + this.expressionTest + '): ' + this.text);
-//     };
-//     return NoWhen;
-// }(No);
 exports.NoWhen = NoWhen;
 
 class NoForEach extends No{
@@ -267,10 +176,10 @@ class NoForEach extends No{
         this.text = text.trim();
     }
     getSql(sqlcommand, data) {
-        var text = [];
+        const text = [];
         var collection = data[this.collection];
         if (collection == null) {
-            if (useful.isArray(data)) {
+            if (util.isArray(data)) {
                 collection = data;
             } else {
                 return this.opening + this.closure;
@@ -278,7 +187,7 @@ class NoForEach extends No{
         }
         for (var i = 0; i < collection.length; i++) {
             var item = collection[i];
-            var myArray;
+            let myArray;
             var regex = new RegExp('#{([a-z.A-Z]+)}', 'ig');
             var expression = this.text;
             var newexpression = expression;
@@ -299,62 +208,11 @@ class NoForEach extends No{
             }
             text.push(newexpression);
         }
-        var sql = this.opening + text.join(this.separator) + this.closure;
+        const sql = this.opening + text.join(this.separator) + this.closure;
         sqlcommand.sql += sql;
         return sqlcommand;
     }
 }
-// var NoForEach = function (_super) {
-//     __extends(NoForEach, _super);
-//     function NoForEach(item, index, separator, opening, closure, text, collection, mapping) {
-//         _super.call(this, '', mapping);
-//         this.item = item;
-//         this.index = index;
-//         this.separator = separator;
-//         this.opening = opening;
-//         this.closure = closure;
-//         this.collection = collection;
-//         this.text = text.trim();
-//     }
-//     NoForEach.prototype.getSql = function (sqlcommand, data) {
-//         var text = [];
-//         var collection = data[this.collection];
-//         if (collection == null) {
-//             if (useful.isArray(data)) {
-//                 collection = data;
-//             } else {
-//                 return this.opening + this.closure;
-//             }
-//         }
-//         for (var i = 0; i < collection.length; i++) {
-//             var item = collection[i];
-//             var myArray;
-//             var regex = new RegExp('#{([a-z.A-Z]+)}', 'ig');
-//             var expression = this.text;
-//             var newexpression = expression;
-//             while ((myArray = regex.exec(expression)) !== null) {
-//                 var stretch = myArray[0];
-//                 var property = myArray[1].replace(this.item + '.', '');
-//                 var propertyvalue = this.getValue(item, property.split('.'));
-//                 if (typeof propertyvalue == 'number') {
-//                     newexpression = newexpression.replace(stretch, '?');
-//                     sqlcommand.addParameter(propertyvalue);
-//                 } else if (typeof propertyvalue == 'string') {
-//                     newexpression = newexpression.replace(stretch, '?');
-//                     sqlcommand.addParameter(propertyvalue);
-//                 } else if (typeof propertyvalue == 'boolean') {
-//                     newexpression = newexpression.replace(stretch, '?');
-//                     sqlcommand.addParameter(propertyvalue);
-//                 }
-//             }
-//             text.push(newexpression);
-//         }
-//         var sql = this.opening + text.join(this.separator) + this.closure;
-//         sqlcommand.sql += sql;
-//         return sqlcommand;
-//     };
-//     return NoForEach;
-// }(No);
 exports.NoForEach = NoForEach;
 
 class NoIf extends No{
@@ -372,10 +230,6 @@ class NoIf extends No{
             identifiers.push(identifier);
             this.expressionTest = this.expressionTest.replace(identifier, 'data.' + identifier);
         }
-        // for (var i = 0; i < identifiers.length; i++) {
-        //     var identifier = identifiers[i];
-        //     this.expressionTest = this.expressionTest.replace(identifier, 'data.' + identifier);
-        // }
     }
     print () {
         console.log('if(' + this.expressionTest + '): ' + this.text);
@@ -394,55 +248,18 @@ class NoIf extends No{
         super.getSql(sqlcommand, data) + ' ';
     }
 }
-// var NoIf = function (_super) {
-//     __extends(NoIf, _super);
-//     function NoIf(expressionTest, text, mapping) {
-//         _super.call(this, '', mapping);
-//         this.expressionTest = expressionTest;
-//         this.text = text;
-//         var regex = new RegExp('[_a-zA-Z][_a-zA-Z0-9]{0,30}', 'ig');
-//         var identifiers = [];
-//         while ((myArray = regex.exec(expressionTest)) !== null) {
-//             var identifier = myArray[0];
-//             if (identifier == 'null')
-//                 continue;
-//             identifiers.push(identifier);
-//         }
-//         for (var i = 0; i < identifiers.length; i++) {
-//             var identifier = identifiers[i];
-//             this.expressionTest = this.expressionTest.replace(identifier, 'data.' + identifier);
-//         }
-//     }
-//     NoIf.prototype.print = function () {
-//         console.log('if(' + this.expressionTest + '): ' + this.text);
-//     };
-//     NoIf.prototype.getSql = function (sqlcommand, data) {
-//         var expression = this.expressionTest.replace('#{', 'data.').replace('}', '');
-//         try {
-//             if(expression)
-//             eval('if( ' + expression + ' ) data.valueExpression = true; else data.valueExpression = false;');
-//         } catch (err) {
-//             data.valueExpression = false;
-//         }
-//         if (data.valueExpression == false) {
-//             return '';
-//         }
-//         _super.prototype.getSql.call(this, sqlcommand, data) + ' ';
-//     };
-//     return NoIf;
-// }(No);
 exports.NoIf = NoIf;
-var NoOtherwise = function (_super) {
-    __extends(NoOtherwise, _super);
-    function NoOtherwise(text, mapping) {
-        _super.call(this, '', mapping);
+
+class NoOtherwise extends No{
+    constructor(text, mapping){
+        super( '', mapping);
         this.text = text;
     }
-    NoOtherwise.prototype.print = function () {
+    print () {
         console.log('otherwise(' + this.text + ')');
-    };
-    NoOtherwise.prototype.getSql = function (sqlcommand, data) {
-        var myArray;
+    }
+    getSql(sqlcommand, data) {
+        let myArray;
         var regex = new RegExp('#{([a-z.A-Z]+)}', 'ig');
         var expression = this.text;
         while ((myArray = regex.exec(this.text)) !== null) {
@@ -460,55 +277,50 @@ var NoOtherwise = function (_super) {
             }
         }
         sqlcommand.sql += expression + ' ';
-    };
-    return NoOtherwise;
-}(No);
+    }
+}
 exports.NoOtherwise = NoOtherwise;
-var NoProperty = function () {
-    function NoProperty(name, column, prefix) {
+
+class NoProperty{
+    constructor(name, column, prefix){
         this.name = name;
         this.column = column;
         this.prefix = prefix;
     }
-    NoProperty.prototype.print = function () {
+    print () {
         console.log(this.name + ' -> ' + this.getColumn());
-    };
-    NoProperty.prototype.getColumn = function (prefix) {
-        return prefix ? prefix + this.column : this.column;
-    };
-    NoProperty.prototype.createObject = function (templateManager, objectcache, object, record, keyphrase) {
-        return null;
-    };
-    return NoProperty;
-}();
-exports.NoProperty = NoProperty;
-var NoPropriedadeId = function (_super) {
-    __extends(NoPropriedadeId, _super);
-    function NoPropriedadeId(name, column) {
-        _super.call(this, name, column);
     }
-    return NoPropriedadeId;
-}(NoProperty);
-exports.NoPropriedadeId = NoPropriedadeId;
-var Noaffiliation = function (_super) {
-    __extends(Noaffiliation, _super);
-    function Noaffiliation(name, column, columnPrefix, resultMap) {
-        _super.call(this, name, column, columnPrefix);
+    getColumn(prefix) {
+        return prefix ? prefix + this.column : this.column;
+    }
+}
+exports.NoProperty = NoProperty;
+
+class NoPropertyId extends NoProperty{
+    constructor(name, column){
+        super(name, column)
+    }
+}
+exports.NoPropertyId = NoPropertyId;
+
+class Noaffiliation extends NoProperty{
+    constructor(name, column, columnPrefix, resultMap){
+        super(name, column, columnPrefix);
         this.resultMap = resultMap;
     }
-    Noaffiliation.prototype.print = function () {
+    print () {
         console.log('associacao(' + this.name + separator + this.getColumn(this.prefix) + ' -> ' + this.resultMap);
     };
-    Noaffiliation.prototype.getFullName = function () {
+    getFullName () {
         if (this.resultMap.indexOf('.') == -1) {
             return this.name + '.' + this.resultMap;
         }
         return this.resultMap;
     };
-    Noaffiliation.prototype.createObject = function (templateManager, objectcache, ancestorCache, object, record, keyphrase, prefix) {
+    createObject (templateManager, objectcache, ancestorCache, object, record, keyphrase, prefix) {
         var no = templateManager.getResultMap(this.resultMap);
         if (!no)
-            throw new Error('Nenhum nó com name foi encontrado: ' + this.resultMap);
+            throw new Error('No node with name was found: ' + this.resultMap);
         var keyobject = no.getChave(record, keyphrase, this.prefix || prefix);
         var combinedkey = no.getChaveCombined(keyphrase, keyobject);
         var objectknown = objectcache[combinedkey] != null;
@@ -517,21 +329,20 @@ var Noaffiliation = function (_super) {
             return;
         object[this.name] = objectCollection;
     };
-    return Noaffiliation;
-}(NoProperty);
+}
 exports.Noaffiliation = Noaffiliation;
-var NoPropriacaoColecao = function (_super) {
-    __extends(NoPropriacaoColecao, _super);
-    function NoPropriacaoColecao(name, column, prefix, resultMap, ofType, javatype) {
-        _super.call(this, name, column, prefix);
+
+class NoPropriacaoColecao extends NoProperty{
+    constructor(name, column, prefix, resultMap, ofType, javatype){
+        super(name, column, prefix);
         this.resultMap = resultMap;
         this.ofType = ofType;
         this.javatype = javatype;
     }
-    NoPropriacaoColecao.prototype.print = function () {
+    print () {
         console.log('collection(' + this.name + separator + this.column + ' -> ' + this.resultMap);
-    };
-    NoPropriacaoColecao.prototype.createObject = function (templateManager, objectcache, ancestorCache, object, record, keyphrase, prefix) {
+    }
+    createObject (templateManager, objectcache, ancestorCache, object, record, keyphrase, prefix) {
         var no = templateManager.getResultMap(this.resultMap);
         var keyobject = no.getChave(record, keyphrase, this.prefix || prefix);
         var combinedkey = keyphrase + separator + keyobject;
@@ -542,22 +353,21 @@ var NoPropriacaoColecao = function (_super) {
         if (objectCollection == null || objectknown == true)
             return;
         object[this.name].push(objectCollection);
-    };
-    return NoPropriacaoColecao;
-}(NoProperty);
+    }
+}
 exports.NoPropriacaoColecao = NoPropriacaoColecao;
-var NoResultMap = function (_super) {
-    __extends(NoResultMap, _super);
-    function NoResultMap(id, type, mapping) {
-        _super.call(this, id, mapping);
+
+class NoResultMap extends No{
+    constructor(id, type, mapping){
+        super(id, mapping);
         this.type = type;
         this.properties = [];
         this.propertiesId = [];
     }
-    NoResultMap.prototype.setIdProperty = function (propertyId) {
+    setIdProperty (propertyId) {
         this.propertiesId.push(propertyId);
-    };
-    NoResultMap.prototype.findPropertyId = function () {
+    }
+    findPropertyId () {
         var property = null;
         var i;
         var found = false;
@@ -570,16 +380,16 @@ var NoResultMap = function (_super) {
         }
         if (!found)
             return;
-        this.setIdProperty(new NoPropriedadeId(property.name, property.getColumn()));
+        this.setIdProperty(new NoPropertyId(property.name, property.getColumn()));
         this.properties.splice(i, 1);
-    };
-    NoResultMap.prototype.defineDiscriminator = function (nodiscriminator) {
+    }
+    defineDiscriminator (nodiscriminator) {
         this.noDiscriminator = nodiscriminator;
-    };
-    NoResultMap.prototype.add = function (property) {
+    }
+    add (property) {
         this.properties.push(property);
-    };
-    NoResultMap.prototype.print = function () {
+    }
+    print () {
         for (var i in this.propertiesId) {
             var propId = this.propertiesId[i];
             propId.print();
@@ -590,15 +400,15 @@ var NoResultMap = function (_super) {
         }
         if (this.noDiscriminator)
             this.noDiscriminator.print();
-    };
-    NoResultMap.prototype.getChaveCombined = function (keyphrase, key) {
+    }
+    getChaveCombined (keyphrase, key) {
         var combinedkey = key;
         if (keyphrase) {
             chaveCombinada = keyphrase + separator + key;
         }
         return combinedkey;
-    };
-    NoResultMap.prototype.getChave = function (record, keyphrase, prefix) {
+    }
+    getChave (record, keyphrase, prefix) {
         var key = this.getFullName() + separator;
         var pedacoBObject = '';
         for (var i in this.propertiesId) {
@@ -614,8 +424,8 @@ var NoResultMap = function (_super) {
         }
         chave += pedacoBObject;
         return key;
-    };
-    NoResultMap.prototype.createObjects = function (templateManager, records) {
+    }
+    createObjects (templateManager, records) {
         var objects = [];
         var objectcache = {};
         var ancestorCache = {};
@@ -630,8 +440,8 @@ var NoResultMap = function (_super) {
             }
         }
         return objects;
-    };
-    NoResultMap.prototype.createObject = function (templateManager, objectcache, ancestorCache, record, keyphrase, prefix) {
+    }
+    createObject (templateManager, objectcache, ancestorCache, record, keyphrase, prefix) {
         var keyobject = this.getChave(record, keyphrase, prefix);
         var combinedkey = this.getChaveCombined(keyphrase, keyobject);
         if (ancestorCache[keyobject] != null) {
@@ -644,8 +454,8 @@ var NoResultMap = function (_super) {
             delete ancestorCache[keyobject];
         }
         return instance;
-    };
-    NoResultMap.prototype.getNameModel = function (record, prefix) {
+    }
+    getNameModel (record, prefix) {
         var typenot;
         if (!this.noDiscriminator) {
             tipoNo = this.type;
@@ -659,8 +469,8 @@ var NoResultMap = function (_super) {
                 tipoNo = this.type;
         }
         return typenot.substring(typenot.lastIndexOf('.') + 1);
-    };
-    NoResultMap.prototype.processCollections = function (templateManager, objectcache, ancestorCache, instance, record, keyobject, prefix) {
+    }
+    processCollections (templateManager, objectcache, ancestorCache, instance, record, keyobject, prefix) {
         var foundValue = false;
         for (var i = 0; i < this.properties.length; i++) {
             var property = this.properties[i];
@@ -671,8 +481,8 @@ var NoResultMap = function (_super) {
             foundValue = foundValue || object != null;
         }
         return foundValue;
-    };
-    NoResultMap.prototype.atribuaPropriedadesSimples = function (instance, record, prefix) {
+    }
+    atribuaPropriedadesSimples (instance, record, prefix) {
         var foundValues = false;
         for (var j in this.propertiesId) {
             var propId = this.propertiesId[j];
@@ -713,42 +523,42 @@ var NoResultMap = function (_super) {
         }
         return foundValues;
     };
-    return NoResultMap;
-}(No);
+}
 exports.NoResultMap = NoResultMap;
-var NoDiscriminator = function () {
-    function NoDiscriminator(javatype, column) {
+
+class NoDiscriminator{
+    constructor(javatype, column){
         this.javatype = javatype;
         this.column = column;
         this.cases = [];
     }
-    NoDiscriminator.prototype.add = function (noCaseDiscriminator) {
+    add (noCaseDiscriminator) {
         this.cases.push(noCaseDiscriminator);
-    };
-    NoDiscriminator.prototype.print = function () {
+    }
+    print () {
         console.log('discriminator(' + this.javatype + ' ' + this.column + ')');
         for (var i in this.cases) {
             var nochase = this.cases[i];
             nochase.print();
         }
     };
-    NoDiscriminator.prototype.getColumn = function (prefix) {
+    getColumn (prefix) {
         return prefix ? prefix + this.column : this.column;
     };
-    return NoDiscriminator;
-}();
+}
 exports.NoDiscriminator = NoDiscriminator;
-var NoCaseDiscriminator = function () {
-    function NoCaseDiscriminator(value, type) {
+
+class NoCaseDiscriminator{
+    constructor(value, type){
         this.value = value;
         this.type = type;
     }
-    NoCaseDiscriminator.prototype.print = function () {
+    print () {
         console.log('\tcase(' + this.value + ' ' + this.type + ')');
-    };
-    return NoCaseDiscriminator;
-}();
+    }
+}
 exports.NoCaseDiscriminator = NoCaseDiscriminator;
+
 var Main = function () {
     function Main() {
     }
@@ -811,7 +621,7 @@ var Main = function () {
         for (var i = 0; i < noXmlResultMap.childNodes.length; i++) {
             var no = noXmlResultMap.childNodes[i];
             if (no.nodeName == 'id') {
-                var propertyId = new NoPropriedadeId(no.getAttributeNode('property').value, no.getAttributeNode('column').value);
+                var propertyId = new NoPropertyId(no.getAttributeNode('property').value, no.getAttributeNode('column').value);
                 noResultMap.setIdProperty(propertyId);
                 ownsId = true;
             } else if (no.nodeName == 'result') {
@@ -1111,15 +921,16 @@ var TemplateMapManager = function () {
     return TemplateMapManager;
 }();
 exports.TemplateMapManager = TemplateMapManager;
-var Mapping = function () {
-    function Mapping(name) {
+
+class Mapping{
+    constructor(name) {
         this.name = name;
         this.children = [];
         this.resultMaps = [];
         this.resultsMapsPorId = {};
         this.nosPorId = {};
     }
-    Mapping.prototype.add = function (noson) {
+    add (noson) {
         noson.mapping = this;
         this.children.push(noson);
         if (noson instanceof NoResultMap) {
@@ -1127,15 +938,16 @@ var Mapping = function () {
             this.resultsMapsPorId[noson.id] = noson;
         }
         this.nosPorId[noson.id] = noson;
-    };
-    Mapping.prototype.getResultMap = function (nameResultMap) {
+    }
+    getResultMap (nameResultMap) {
         return this.resultsMapsPorId[nameResultMap];
-    };
-    Mapping.prototype.getNo = function (idon) {
+    }
+    getNo (idon) {
         return this.nosPorId[idon];
-    };
-    return Mapping;
-}();
-exports.dir_xml = dir_xml;
+    }
+}
 exports.Mapping = Mapping;
+
+exports.dir_xml = dir_xml;
+
 exports.Context = Context;
