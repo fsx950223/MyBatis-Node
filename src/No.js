@@ -1,1375 +1,1025 @@
-var dir_xml = '',
-    separador = ':::';
-
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
+var dir_xml = '', separator = ':::';
+var __extends = this.__extends || function (d, B) {
+    for (var P in B)
+        if (B.hasOwnProperty(P))
+            d[P] = B[P];
+    function __() {
+        this.constructor = d;
+    }
+    __.prototype = B.prototype;
     d.prototype = new __();
 };
 var fs = require('fs');
-var path =  require('path');
-
+var path = require('path');
 var vm = require('vm');
-var util = require('util');
+var useful = require('util');
 var moment = require('moment');
 var DOMParser = require('xmldom').DOMParser;
-var S = require('string');
-var Contexto = require('./Contexto');
-
-function ComandoSql() {
+var s = require('string');
+var Context = require('./Context');
+function SqlCommand() {
     this.sql = '';
-    this.parametros = [];
+    this.parameters = [];
 }
-
-ComandoSql.prototype.adicioneParametro = function(valor) {
-    this.parametros.push(valor);
-}
-
-var No = (function () {
-    function No(id, mapeamento) {
+SqlCommand.prototype.addParameter = function (value) {
+    this.parameters.push(value);
+};
+var Atthe = function () {
+    function Atthe(id, mapping) {
         this.id = id;
-        this.mapeamento = mapeamento;
+        this.mapeamento = mapping;
         this.filhos = [];
     }
-
-    No.prototype.adicione = function (no) {
-        this.filhos.push(no);
+    Atthe.prototype.add = function (atthe) {
+        this.filhos.push(atthe);
     };
-
-    No.prototype.imprima = function () {
+    Atthe.prototype.print = function () {
         if (this.id)
             console.log(this.id);
-
         for (var i in this.filhos) {
-            var noFilho = this.filhos[i];
-
-            noFilho.imprima();
+            var noson = this.filhos[i];
+            noson.print();
         }
     };
-
-    No.prototype.obtenhaSql = function (comandoSql, dados) {
+    Atthe.prototype.getSql = function (sqlcommand, data) {
         for (var i in this.filhos) {
-            var noFilho = this.filhos[i];
-
-            noFilho.obtenhaSql(comandoSql, dados);
+            var noson = this.filhos[i];
+            noson.getSql(sqlcommand, data);
         }
-
-        return comandoSql;
+        return sqlcommand;
     };
-
-    No.prototype.getValue = function (data, path) {
+    Atthe.prototype.getValue = function (data, path) {
         var i, len = path.length;
-
-        for (i = 0; typeof data === 'object' && i < len; ++i) {
-            if( data )
-                data = data[path[i]];
+        for (i = 0; typeof givesyou === 'object' && i < len; ++i) {
+            if (givesyou)
+                data = givesyou[path[i]];
         }
-        return data;
+        return givesyou;
     };
-
-    No.prototype.obtenhaNomeCompleto = function () {
-        return this.mapeamento.nome + "." + this.id;
+    Atthe.prototype.getFullName = function () {
+        return this.mapeamento.name + '.' + this.id;
     };
-
-    No.prototype.processeExpressao = function (texto, comandoSql, dados) {
+    Atthe.prototype.processexpression = function (text, sqlcommand, data) {
         var myArray;
-        var regex = new RegExp('#\{([a-z.A-Z0-9_]+)}', 'ig');
-        var expressao = texto;
-
-        while ((myArray = regex.exec(texto)) !== null) {
-            var trecho = myArray[0];
-            var valorPropriedade = this.getValue(dados, myArray[1].split('.'));
-
-            // console.log(trecho + " -> " + valorPropriedade);
-            if (valorPropriedade == null) {
-                expressao = expressao.replace(trecho, '?');
-                comandoSql.adicioneParametro(null);
-            } else if (typeof valorPropriedade == "number") {
-                expressao = expressao.replace(trecho, '?');
-                comandoSql.adicioneParametro(valorPropriedade);
-            } else if (typeof valorPropriedade == 'string') {
-                expressao = expressao.replace(trecho, '?');
-                comandoSql.adicioneParametro(valorPropriedade);
-            } else if (typeof valorPropriedade == 'boolean') {
-                expressao = expressao.replace(trecho, '?');
-                comandoSql.adicioneParametro(valorPropriedade);
-            } else if (util.isDate(valorPropriedade)) {
-                var valor = moment(valorPropriedade).format('YYYY-MM-DD HH:mm:ss');
-
-                // console.log(valor);
-                expressao = expressao.replace(trecho, '?');
-
-                comandoSql.adicioneParametro(valor);
-            } else if (util.isArray(valorPropriedade)) {
-                throw new Error("Não pode traduzir trecho " + trecho + " pela coleção: " + valorPropriedade);
+        var regex = new RegExp('#{([a-z.A-Z0-9_]+)}', 'ig');
+        var expression = text;
+        while ((myArray = regex.exec(text)) !== null) {
+            var stretch = myArray[0];
+            var propertyvalue = this.getValue(data, myArray[1].split('.'));
+            if (propertyvalue == null) {
+                expressao = expression.replace(stretch, '?');
+                sqlcommand.addParameter(null);
+            } else if (typeof propertyvalue == 'number') {
+                expressao = expression.replace(stretch, '?');
+                sqlcommand.addParameter(propertyvalue);
+            } else if (typeof propertyvalue == 'string') {
+                expressao = expression.replace(stretch, '?');
+                sqlcommand.addParameter(propertyvalue);
+            } else if (typeof propertyvalue == 'boolean') {
+                expressao = expression.replace(stretch, '?');
+                sqlcommand.addParameter(propertyvalue);
+            } else if (useful.isDate(propertyvalue)) {
+                var value = moment(propertyvalue).format('YYYY-MM-DD HH:mm:ss');
+                expressao = expression.replace(stretch, '?');
+                sqlcommand.addParameter(value);
+            } else if (useful.isArray(propertyvalue)) {
+                throw new Error('Não pode traduzir trecho ' + stretch + ' pela coleção: ' + propertyvalue);
             }
         }
-
-        return expressao;
+        return expression;
     };
-    return No;
-})();
-exports.No = No;
-
-var NoSelect = (function (_super) {
+    return Atthe;
+}();
+exports.No = Atthe;
+var NoSelect = function (_super) {
     __extends(NoSelect, _super);
-    function NoSelect(id, resultMap, javaType, mapeamento) {
-        _super.call(this, id, mapeamento);
-
+    function NoSelect(id, resultMap, javaType, mapping) {
+        _super.call(this, id, mapping);
         this.resultMap = resultMap;
         this.javaType = javaType;
     }
     return NoSelect;
-})(No);
+}(Atthe);
 exports.NoSelect = NoSelect;
-
-var NoString = (function (_super) {
+var NoString = function (_super) {
     __extends(NoString, _super);
-    function NoString(texto, mapeamento) {
-        _super.call(this, '', mapeamento);
-        this.texto = texto.trim();
+    function NoString(text, mapping) {
+        _super.call(this, '', mapping);
+        this.texto = text.trim();
     }
-    NoString.prototype.imprima = function () {
+    NoString.prototype.print = function () {
         console.log(this.texto);
     };
-
-    NoString.prototype.obtenhaSql = function (comandoSql, dados) {
-        comandoSql.sql += _super.prototype.processeExpressao.call(this, this.texto, comandoSql, dados) + " ";
+    NoString.prototype.getSql = function (sqlcommand, data) {
+        sqlcommand.sql += _super.prototype.processexpression.call(this, this.texto, sqlcommand, data) + ' ';
     };
     return NoString;
-})(No);
+}(Atthe);
 exports.NoString = NoString;
-
-var NoChoose = (function (_super) {
+var NoChoose = function (_super) {
     __extends(NoChoose, _super);
-    function NoChoose(mapeamento) {
-        _super.call(this, '', mapeamento);
+    function NoChoose(mapping) {
+        _super.call(this, '', mapping);
     }
-    NoChoose.prototype.adicione = function (no) {
-        _super.prototype.adicione.call(this, no);
-
-        if (no instanceof NoOtherwise) {
-            this.noOtherwise = no;
+    NoChoose.prototype.add = function (atthe) {
+        _super.prototype.add.call(this, atthe);
+        if (atthe instanceof NoOtherwise) {
+            this.noOtherwise = atthe;
         }
     };
-
-    NoChoose.prototype.obtenhaSql = function (comandoSql, dados) {
+    NoChoose.prototype.getSql = function (sqlcommand, data) {
         for (var i in this.filhos) {
-            var no = this.filhos[i];
-
-            if (no instanceof NoWhen) {
-                var noWhen = no;
-
-                var expressao = noWhen.expressaoTeste.replace('#{', "dados.").replace("}", "");
-
-                try  {
-                    eval('if( ' + expressao + ' ) dados.valorExpressao = true; else dados.valorExpressao = false;');
+            var atthe = this.filhos[i];
+            if (atthe instanceof Nowhen) {
+                var nowhen = atthe;
+                var expression = nowhen.expressionTest.replace('#{', 'dados.').replace('}', '');
+                try {
+                    eval('if( ' + expression + ' ) dados.valueExpression = true; else dados.valueExpression = false;');
                 } catch (err) {
-                    dados.valorExpressao = false;
+                    data.valueExpression = false;
                 }
-
-                if (dados.valorExpressao) {
-                    return noWhen.obtenhaSql(comandoSql, dados);
+                if (data.valueExpression) {
+                    return nowhen.getSql(sqlcommand, data);
                 }
             }
         }
-
         if (this.noOtherwise) {
-            return this.noOtherwise.obtenhaSql(comandoSql, dados);
+            return this.noOtherwise.getSql(sqlcommand, data);
         }
-
         return '';
     };
     return NoChoose;
-})(No);
+}(Atthe);
 exports.NoChoose = NoChoose;
-
-var NoWhen = (function (_super) {
-    __extends(NoWhen, _super);
-    function NoWhen(expressaoTeste, texto, mapeamento) {
-        _super.call(this, '', mapeamento);
-        this.expressaoTeste = expressaoTeste;
-        this.texto = texto;
-
+var Nowhen = function (_super) {
+    __extends(Nowhen, _super);
+    function Nowhen(expressionTest, text, mapping) {
+        _super.call(this, '', mapping);
+        this.expressionTest = expressionTest;
+        this.texto = text;
         var regex = new RegExp('[_a-zA-Z][_a-zA-Z0-9]{0,30}', 'ig');
-        var identificadores = [];
-        while ((myArray = regex.exec(expressaoTeste)) !== null) {
-            var identificador = myArray[0];
-
-            if( identificador == 'null' || identificador == 'true' || identificador == 'false' || identificador == 'and' ) continue;
-
-            identificadores.push(identificador);
+        var identifiers = [];
+        while ((myArray = regex.exec(expressionTest)) !== null) {
+            var identifier = myArray[0];
+            if (identifier == 'null' || identifier == 'true' || identifier == 'false' || identifier == 'and')
+                continue;
+            identifiers.push(identifier);
         }
-
-        for( var i = 0; i < identificadores.length; i++ ) {
-            var identificador = identificadores[i];
-
-            this.expressaoTeste = this.expressaoTeste.replace(identificador, "dados." + identificador);
+        for (var i = 0; i < identifiers.length; i++) {
+            var identifier = identifiers[i];
+            this.expressionTest = this.expressionTest.replace(identifier, 'dados.' + identifier);
         }
-
-        this.expressaoTeste = S(this.expressaoTeste).replaceAll('and', '&&').toString();
+        this.expressionTest = s(this.expressionTest).replaceAll('and', '&&').toString();
     }
-
-    NoWhen.prototype.imprima = function () {
-        console.log('when(' + this.expressaoTeste + '): ' + this.texto);
+    Nowhen.prototype.print = function () {
+        console.log('when(' + this.expressionTest + '): ' + this.texto);
     };
-
-    return NoWhen;
-})(No);
-exports.NoWhen = NoWhen;
-
-var NoForEach = (function (_super) {
+    return Nowhen;
+}(Atthe);
+exports.NoWhen = Nowhen;
+var NoForEach = function (_super) {
     __extends(NoForEach, _super);
-    function NoForEach(item, index, separador, abertura, fechamento, texto, collection, mapeamento) {
-        _super.call(this, '', mapeamento);
-
+    function NoForEach(item, index, separator, opening, closure, text, collection, mapping) {
+        _super.call(this, '', mapping);
         this.item = item;
         this.index = index;
-        this.separador = separador;
-        this.abertura = abertura;
-        this.fechamento = fechamento;
+        this.separador = separator;
+        this.abertura = opening;
+        this.fechamento = closure;
         this.collection = collection;
-        this.texto = texto.trim();
+        this.texto = text.trim();
     }
-    NoForEach.prototype.obtenhaSql = function (comandoSql, dados) {
-        var texto = [];
-
-        var colecao = dados[this.collection];
-
-        if (colecao == null) {
-            if (util.isArray(dados)) {
-                colecao = dados;
+    NoForEach.prototype.getSql = function (sqlcommand, data) {
+        var text = [];
+        var collection = data[this.collection];
+        if (collection == null) {
+            if (useful.isArray(data)) {
+                colecao = data;
             } else {
                 return this.abertura + this.fechamento;
             }
         }
-
-        for (var i = 0; i < colecao.length; i++) {
-            var item = colecao[i];
-
+        for (var i = 0; i < collection.length; i++) {
+            var item = collection[i];
             var myArray;
-            var regex = new RegExp('#\{([a-z.A-Z]+)}', 'ig');
-
-            var expressao = this.texto;
-
-            var novaExpressao = expressao;
-            while ((myArray = regex.exec(expressao)) !== null) {
-                var trecho = myArray[0];
-                var propriedade = myArray[1].replace(this.item + ".", '');
-                var valorPropriedade = this.getValue(item, propriedade.split("."));
-
-                if (typeof valorPropriedade == "number") {
-                    novaExpressao = novaExpressao.replace(trecho, '?');
-                    comandoSql.adicioneParametro(valorPropriedade);
-                } else if (typeof valorPropriedade == 'string') {
-                    novaExpressao = novaExpressao.replace(trecho, '?');
-                    comandoSql.adicioneParametro(valorPropriedade);
-                } else if (typeof valorPropriedade == 'boolean') {
-                    novaExpressao = novaExpressao.replace(trecho, '?');
-                    comandoSql.adicioneParametro(valorPropriedade);
+            var regex = new RegExp('#{([a-z.A-Z]+)}', 'ig');
+            var expression = this.texto;
+            var newexpression = expression;
+            while ((myArray = regex.exec(expression)) !== null) {
+                var stretch = myArray[0];
+                var property = myArray[1].replace(this.item + '.', '');
+                var propertyvalue = this.getValue(item, property.split('.'));
+                if (typeof propertyvalue == 'number') {
+                    novaExpressao = newexpression.replace(stretch, '?');
+                    sqlcommand.addParameter(propertyvalue);
+                } else if (typeof propertyvalue == 'string') {
+                    novaExpressao = newexpression.replace(stretch, '?');
+                    sqlcommand.addParameter(propertyvalue);
+                } else if (typeof propertyvalue == 'boolean') {
+                    novaExpressao = newexpression.replace(stretch, '?');
+                    sqlcommand.addParameter(propertyvalue);
                 }
             }
-
-            texto.push(novaExpressao);
+            text.push(newexpression);
         }
-
-        var sql = this.abertura + texto.join(this.separador) + this.fechamento;
-
-        comandoSql.sql += sql;
-
-        return comandoSql;
+        var sql = this.abertura + text.join(this.separador) + this.fechamento;
+        sqlcommand.sql += sql;
+        return sqlcommand;
     };
     return NoForEach;
-})(No);
+}(Atthe);
 exports.NoForEach = NoForEach;
-
-var NoIf = (function (_super) {
+var NoIf = function (_super) {
     __extends(NoIf, _super);
-    function NoIf(expressaoTeste, texto, mapeamento) {
-        _super.call(this, '', mapeamento);
-        this.expressaoTeste = expressaoTeste;
-        this.texto = texto;
-
+    function NoIf(expressionTest, text, mapping) {
+        _super.call(this, '', mapping);
+        this.expressionTest = expressionTest;
+        this.texto = text;
         var regex = new RegExp('[_a-zA-Z][_a-zA-Z0-9]{0,30}', 'ig');
-        var identificadores = [];
-        while ((myArray = regex.exec(expressaoTeste)) !== null) {
-            var identificador = myArray[0];
-
-            if( identificador == 'null' ) continue;
-
-            identificadores.push(identificador);
+        var identifiers = [];
+        while ((myArray = regex.exec(expressionTest)) !== null) {
+            var identifier = myArray[0];
+            if (identifier == 'null')
+                continue;
+            identifiers.push(identifier);
         }
-
-        for( var i = 0; i < identificadores.length; i++ ) {
-            var identificador = identificadores[i];
-
-            this.expressaoTeste = this.expressaoTeste.replace(identificador, "dados." + identificador);
+        for (var i = 0; i < identifiers.length; i++) {
+            var identifier = identifiers[i];
+            this.expressionTest = this.expressionTest.replace(identifier, 'dados.' + identifier);
         }
     }
-    NoIf.prototype.imprima = function () {
-        console.log('if(' + this.expressaoTeste + '): ' + this.texto);
+    NoIf.prototype.print = function () {
+        console.log('if(' + this.expressionTest + '): ' + this.texto);
     };
-
-    NoIf.prototype.obtenhaSql = function(comandoSql, dados) {
-        var expressao = this.expressaoTeste.replace('#{', "dados.").replace("}", "");
-
-        try  {
-            eval('if( ' + expressao + ' ) dados.valorExpressao = true; else dados.valorExpressao = false;');
+    NoIf.prototype.getSql = function (sqlcommand, data) {
+        var expression = this.expressionTest.replace('#{', 'dados.').replace('}', '');
+        try {
+            eval('if( ' + expression + ' ) dados.valueExpression = true; else dados.valueExpression = false;');
         } catch (err) {
-            dados.valorExpressao = false;
+            data.valueExpression = false;
         }
-
-        if (dados.valorExpressao == false) {
+        if (data.valueExpression == false) {
             return '';
         }
-
-        //console.log(this.texto);
-        //comandoSql.sql += _super.prototype.processeExpressao.call(this, this.texto, comandoSql, dados) + " ";
-        _super.prototype.obtenhaSql.call(this, comandoSql, dados) + " ";
+        _super.prototype.getSql.call(this, sqlcommand, data) + ' ';
     };
     return NoIf;
-})(No);
+}(Atthe);
 exports.NoIf = NoIf;
-
-var NoOtherwise = (function (_super) {
+var NoOtherwise = function (_super) {
     __extends(NoOtherwise, _super);
-    function NoOtherwise(texto, mapeamento) {
-        _super.call(this, '', mapeamento);
-
-        this.texto = texto;
+    function NoOtherwise(text, mapping) {
+        _super.call(this, '', mapping);
+        this.texto = text;
     }
-    NoOtherwise.prototype.imprima = function () {
+    NoOtherwise.prototype.print = function () {
         console.log('otherwise(' + this.texto + ')');
     };
-
-    NoOtherwise.prototype.obtenhaSql = function (comandoSql, dados) {
+    NoOtherwise.prototype.getSql = function (sqlcommand, data) {
         var myArray;
-        var regex = new RegExp('#\{([a-z.A-Z]+)}', 'ig');
-
-        var expressao = this.texto;
-
+        var regex = new RegExp('#{([a-z.A-Z]+)}', 'ig');
+        var expression = this.texto;
         while ((myArray = regex.exec(this.texto)) !== null) {
-            var trecho = myArray[0];
-            var valorPropriedade = this.getValue(dados, myArray[1].split('.'));
-
-            if (typeof valorPropriedade == "number") {
-                expressao = expressao.replace(trecho, '?');
-                comandoSql.adicioneParametro(valorPropriedade);
-            } else if (typeof valorPropriedade == 'string') {
-                expressao = expressao.replace(trecho, '?');
-                comandoSql.adicioneParametro(valorPropriedade);
-            } else if (typeof valorPropriedade == 'boolean') {
-                expressao = expressao.replace(trecho, '?');
-                comandoSql.adicioneParametro(valorPropriedade);
+            var stretch = myArray[0];
+            var propertyvalue = this.getValue(data, myArray[1].split('.'));
+            if (typeof propertyvalue == 'number') {
+                expressao = expression.replace(stretch, '?');
+                sqlcommand.addParameter(propertyvalue);
+            } else if (typeof propertyvalue == 'string') {
+                expressao = expression.replace(stretch, '?');
+                sqlcommand.addParameter(propertyvalue);
+            } else if (typeof propertyvalue == 'boolean') {
+                expressao = expression.replace(stretch, '?');
+                sqlcommand.addParameter(propertyvalue);
             }
         }
-
-        comandoSql.sql += expressao + " ";
+        sqlcommand.sql += expression + ' ';
     };
-
     return NoOtherwise;
-})(No);
+}(Atthe);
 exports.NoOtherwise = NoOtherwise;
-
-var NoPropriedade = (function () {
-    function NoPropriedade(nome, coluna,prefixo) {
-        this.nome = nome;
-        this.coluna = coluna;
-        this.prefixo = prefixo;
+var NoProperty = function () {
+    function NoProperty(name, column, prefix) {
+        this.name = name;
+        this.column = column;
+        this.prefix = prefix;
     }
-    NoPropriedade.prototype.imprima = function () {
-        console.log(this.nome + " -> " + this.obtenhaColuna());
+    NoProperty.prototype.print = function () {
+        console.log(this.name + ' -> ' + this.getColumn());
     };
-
-    NoPropriedade.prototype.obtenhaColuna = function(prefixo){
-        return prefixo ? prefixo + this.coluna : this.coluna;
-    }
-    NoPropriedade.prototype.crieObjeto = function (gerenciadorDeMapeamentos, cacheDeObjetos, objeto, registro, chavePai) {
+    NoProperty.prototype.getColumn = function (prefix) {
+        return prefix ? prefix + this.column : this.column;
+    };
+    NoProperty.prototype.createObject = function (templateManager, objectcache, object, record, keyphrase) {
         return null;
     };
-    return NoPropriedade;
-})();
-exports.NoPropriedade = NoPropriedade;
-
-
-var NoPropriedadeId = (function (_super) {
+    return NoProperty;
+}();
+exports.NoProperty = NoProperty;
+var NoPropriedadeId = function (_super) {
     __extends(NoPropriedadeId, _super);
-    function NoPropriedadeId(nome, coluna) {
-        _super.call(this, nome, coluna);
+    function NoPropriedadeId(name, column) {
+        _super.call(this, name, column);
     }
-
     return NoPropriedadeId;
-})(NoPropriedade);
+}(NoProperty);
 exports.NoPropriedadeId = NoPropriedadeId;
-
-var NoAssociacao = (function (_super) {
-    __extends(NoAssociacao, _super);
-    function NoAssociacao(nome, coluna, columnPrefix,resultMap) {
-        _super.call(this, nome, coluna,columnPrefix);
-
+var Noaffiliation = function (_super) {
+    __extends(Noaffiliation, _super);
+    function Noaffiliation(name, column, columnPrefix, resultMap) {
+        _super.call(this, name, column, columnPrefix);
         this.resultMap = resultMap;
     }
-    NoAssociacao.prototype.imprima = function () {
-        console.log('associacao(' + this.nome + separador + this.obtenhaColuna(this.prefixo) + " -> " + this.resultMap);
+    Noaffiliation.prototype.print = function () {
+        console.log('associacao(' + this.name + separator + this.getColumn(this.prefix) + ' -> ' + this.resultMap);
     };
-
-    NoAssociacao.prototype.obtenhaNomeCompleto = function() {
-        if( this.resultMap.indexOf(".") == -1 ) {
-            return this.nome + "." + this.resultMap;
+    Noaffiliation.prototype.getFullName = function () {
+        if (this.resultMap.indexOf('.') == -1) {
+            return this.name + '.' + this.resultMap;
         }
-
         return this.resultMap;
-    }
-
-    NoAssociacao.prototype.crieObjeto = function (gerenciadorDeMapeamentos, cacheDeObjetos, ancestorCache, objeto, registro, chavePai,prefixo) {
-        var no = gerenciadorDeMapeamentos.obtenhaResultMap(this.resultMap);
-
-        if(!no) throw  new Error('Nenhum nó com nome foi encontrado: ' + this.resultMap);
-
-        var chaveObjeto = no.obtenhaChave(registro, chavePai,(this.prefixo || prefixo));
-        var chaveCombinada = no.obtenhaChaveCombinada(chavePai, chaveObjeto);
-
-        var objetoConhecido = cacheDeObjetos[chaveCombinada] != null;
-
-        var objetoColecao = no.crieObjeto(gerenciadorDeMapeamentos, cacheDeObjetos, ancestorCache, registro, chavePai,(this.prefixo || prefixo));
-
-        if (objetoColecao == null || objetoConhecido == true)
-            return;
-
-        objeto[this.nome] = objetoColecao;
-
-
     };
-    return NoAssociacao;
-})(NoPropriedade);
-exports.NoAssociacao = NoAssociacao;
-
-var NoPropriedadeColecao = (function (_super) {
-    __extends(NoPropriedadeColecao, _super);
-
-    function NoPropriedadeColecao(nome, coluna,prefixo, resultMap, ofType, tipoJava) {
-        _super.call(this, nome, coluna,prefixo);
-
+    Noaffiliation.prototype.createObject = function (templateManager, objectcache, ancestorCache, object, record, keyphrase, prefix) {
+        var atthe = templateManager.getResultMap(this.resultMap);
+        if (!atthe)
+            throw new Error('Nenhum nó com name foi encontrado: ' + this.resultMap);
+        var keyobject = atthe.getChave(record, keyphrase, this.prefix || prefix);
+        var combinedkey = atthe.getChaveCombined(keyphrase, keyobject);
+        var objectknown = objectcache[combinedkey] != null;
+        var objectCollection = atthe.createObject(templateManager, objectcache, ancestorCache, record, keyphrase, this.prefix || prefix);
+        if (objectCollection == null || objectknown == true)
+            return;
+        object[this.name] = objectCollection;
+    };
+    return Noaffiliation;
+}(NoProperty);
+exports.Noaffiliation = Noaffiliation;
+var NoPropriacaoColecao = function (_super) {
+    __extends(NoPropriacaoColecao, _super);
+    function NoPropriacaoColecao(name, column, prefix, resultMap, ofType, javatype) {
+        _super.call(this, name, column, prefix);
         this.resultMap = resultMap;
-
         this.ofType = ofType;
-        this.tipoJava = tipoJava;
+        this.javatype = javatype;
     }
-
-    NoPropriedadeColecao.prototype.imprima = function () {
-        console.log('colecao(' + this.nome + separador + this.coluna + " -> " + this.resultMap);
+    NoPropriacaoColecao.prototype.print = function () {
+        console.log('colecao(' + this.name + separator + this.column + ' -> ' + this.resultMap);
     };
-
-    NoPropriedadeColecao.prototype.crieObjeto = function (gerenciadorDeMapeamentos, cacheDeObjetos, ancestorCache, objeto, registro, chavePai,prefixo) {
-        var no = gerenciadorDeMapeamentos.obtenhaResultMap(this.resultMap);
-
-        var chaveObjeto = no.obtenhaChave(registro, chavePai,(this.prefixo || prefixo));
-        var chaveCombinada = chavePai + separador + chaveObjeto;
-
-        var objetoConhecido = cacheDeObjetos[chaveCombinada] != null;
-
-        var objetoColecao = no.crieObjeto(gerenciadorDeMapeamentos, cacheDeObjetos, ancestorCache, registro, chavePai,(this.prefixo || prefixo));
-
-        if (objeto[this.nome] == null)
-            objeto[this.nome] = [];
-
-
-        if (objetoColecao == null || objetoConhecido == true)
+    NoPropriacaoColecao.prototype.createObject = function (templateManager, objectcache, ancestorCache, object, record, keyphrase, prefix) {
+        var atthe = templateManager.getResultMap(this.resultMap);
+        var keyobject = atthe.getChave(record, keyphrase, this.prefix || prefix);
+        var combinedkey = keyphrase + separator + keyobject;
+        var objectknown = objectcache[combinedkey] != null;
+        var objectCollection = atthe.createObject(templateManager, objectcache, ancestorCache, record, keyphrase, this.prefix || prefix);
+        if (object[this.name] == null)
+            object[this.name] = [];
+        if (objectCollection == null || objectknown == true)
             return;
-
-        objeto[this.nome].push(objetoColecao);
+        object[this.name].push(objectCollection);
     };
-
-    return NoPropriedadeColecao;
-
-})(NoPropriedade);
-exports.NoPropriedadeColecao = NoPropriedadeColecao;
-
-var NoResultMap = (function (_super) {
+    return NoPropriacaoColecao;
+}(NoProperty);
+exports.NoPropriacaoColecao = NoPropriacaoColecao;
+var NoResultMap = function (_super) {
     __extends(NoResultMap, _super);
-    function NoResultMap(id, tipo, mapeamento) {
-        _super.call(this, id, mapeamento);
-        this.tipo = tipo;
-        this.propriedades = [];
-        this.propriedadesId = [];
+    function NoResultMap(id, type, mapping) {
+        _super.call(this, id, mapping);
+        this.type = type;
+        this.properties = [];
+        this.propertiesId = [];
     }
-    NoResultMap.prototype.definaPropriedadeId = function (propriedadeId) {
-        this.propriedadesId.push(propriedadeId);
+    NoResultMap.prototype.setIdProperty = function (propertyId) {
+        this.propertiesId.push(propertyId);
     };
-
-    NoResultMap.prototype.encontrePropriedadeId = function () {
-        var propriedade = null;
+    NoResultMap.prototype.findPropertyId = function () {
+        var property = null;
         var i;
-        var encontrou = false;
-        for (i = 0; i < this.propriedades.length; i++) {
-            propriedade = this.propriedades[i];
-
-            if (propriedade.nome == 'id') {
+        var found = false;
+        for (i = 0; i < this.properties.length; i++) {
+            propriedade = this.properties[i];
+            if (property.name == 'id') {
                 encontrou = true;
                 break;
             }
         }
-
-        if(!encontrou) return;
-
-        this.definaPropriedadeId(new NoPropriedadeId(propriedade.nome, propriedade.obtenhaColuna()));
-        this.propriedades.splice(i, 1);
+        if (!found)
+            return;
+        this.setIdProperty(new NoPropriedadeId(property.name, property.getColumn()));
+        this.properties.splice(i, 1);
     };
-
-    NoResultMap.prototype.definaDiscriminator = function (noDiscriminador) {
-        this.noDiscriminador = noDiscriminador;
+    NoResultMap.prototype.defineDiscriminator = function (nodiscriminator) {
+        this.noDiscriminator = nodiscriminator;
     };
-
-    NoResultMap.prototype.adicione = function (propriedade) {
-        this.propriedades.push(propriedade);
+    NoResultMap.prototype.add = function (property) {
+        this.properties.push(property);
     };
-
-    NoResultMap.prototype.imprima = function () {
-        for (var i in this.propriedadesId) {
-            var propId = this.propriedadesId[i];
-
-            propId.imprima();
+    NoResultMap.prototype.print = function () {
+        for (var i in this.propertiesId) {
+            var propId = this.propertiesId[i];
+            propId.print();
         }
-
-        for (var i in this.propriedades) {
-            var propriedade = this.propriedades[i];
-
-            propriedade.imprima();
+        for (var i in this.properties) {
+            var property = this.properties[i];
+            property.print();
         }
-
-        if (this.noDiscriminador)
-            this.noDiscriminador.imprima();
+        if (this.noDiscriminator)
+            this.noDiscriminator.print();
     };
-
-    NoResultMap.prototype.obtenhaChaveCombinada = function(chavePai, chave) {
-        var chaveCombinada = chave;
-
-        if( chavePai ) {
-            chaveCombinada = chavePai + separador + chave;
+    NoResultMap.prototype.getChaveCombined = function (keyphrase, key) {
+        var combinedkey = key;
+        if (keyphrase) {
+            chaveCombinada = keyphrase + separator + key;
         }
-
-        return chaveCombinada;
-    }
-
-    NoResultMap.prototype.obtenhaChave = function (registro, chavePai,prefixo) {
-        var chave = this.obtenhaNomeCompleto() + separador;
-
-        var pedacoObjeto = '';
-
-        for (var i in this.propriedadesId) {
-            var propriedade = this.propriedadesId[i];
-
-            var valor = registro[propriedade.obtenhaColuna(prefixo)];
-
-            if (valor != null) {
-                pedacoObjeto += valor;
+        return combinedkey;
+    };
+    NoResultMap.prototype.getChave = function (record, keyphrase, prefix) {
+        var key = this.getFullName() + separator;
+        var pedacoBObject = '';
+        for (var i in this.propertiesId) {
+            var property = this.propertiesId[i];
+            var value = record[property.getColumn(prefix)];
+            if (value != null) {
+                pedacoBObject += value;
             } else {
-                //throw new Error("Chave do objeto não pode ser calculada. \nColuna '" + propriedade.coluna + "' não encontrada para o resultMap '" + this.id + "'");
             }
         }
-
-        if (pedacoObjeto == '') {
+        if (pedacoBObject == '') {
             return null;
         }
-
-        chave += pedacoObjeto;
-
-        return chave;
+        chave += pedacoBObject;
+        return key;
     };
-
-    NoResultMap.prototype.crieObjetos = function (gerenciadorDeMapeamentos, registros) {
-        var objetos = [];
-        var cacheDeObjetos = {};
+    NoResultMap.prototype.createObjects = function (templateManager, records) {
+        var objects = [];
+        var objectcache = {};
         var ancestorCache = {};
-
-        for (var i in registros) {
-            var registro = registros[i];
-
-            var chaveObjeto = this.obtenhaChave(registro, '');
-
-            var objetoConhecido = cacheDeObjetos[chaveObjeto] != null;
-
-            var objeto = this.crieObjeto(gerenciadorDeMapeamentos, cacheDeObjetos, ancestorCache, registro, '');
-
-            if (!objetoConhecido && objeto) {
-                objetos.push(objeto);
+        for (var i in records) {
+            var record = records[i];
+            var keyobject = this.getChave(record, '');
+            var objectknown = objectcache[keyobject] != null;
+            var object = this.createObject(templateManager, objectcache, ancestorCache, record, '');
+            if (!objectknown && object) {
+                objects.push(object);
             } else {
             }
         }
-
-        return objetos;
+        return objects;
     };
-
-    NoResultMap.prototype.crieObjeto = function (gerenciadorDeMapeamentos, cacheDeObjetos, ancestorCache, registro, chavePai,prefixo) {
-        var chaveObjeto = this.obtenhaChave(registro, chavePai,prefixo);
-        var chaveCombinada = this.obtenhaChaveCombinada(chavePai, chaveObjeto);
-
-        if( ancestorCache[chaveObjeto] != null ) {
-            return ancestorCache[chaveObjeto];
+    NoResultMap.prototype.createObject = function (templateManager, objectcache, ancestorCache, record, keyphrase, prefix) {
+        var keyobject = this.getChave(record, keyphrase, prefix);
+        var combinedkey = this.getChaveCombined(keyphrase, keyobject);
+        if (ancestorCache[keyobject] != null) {
+            return ancestorCache[keyobject];
         }
-        if (cacheDeObjetos[chaveCombinada] != null) {
-            var instance = cacheDeObjetos[chaveCombinada];
-
-            ancestorCache[chaveObjeto] = instance;
-
-            this.processeColecoes(gerenciadorDeMapeamentos, cacheDeObjetos, ancestorCache, instance, registro, chaveCombinada,prefixo);
-
-            delete ancestorCache[chaveObjeto];
+        if (objectcache[combinedkey] != null) {
+            var instance = objectcache[combinedkey];
+            ancestorCache[keyobject] = instance;
+            this.processCollections(templateManager, objectcache, ancestorCache, instance, record, combinedkey, prefix);
+            delete ancestorCache[keyobject];
         } else {
-            var nomeModel = this.obtenhaNomeModel(registro,prefixo),
-                idChave = chaveObjeto && chaveObjeto.split(separador)[1];
-
-            var model = gerenciadorDeMapeamentos.obtenhaModel(nomeModel);
-
-            model = model[nomeModel];
-
+            var Firstname = this.getNameModel(record, prefix), idChave = keyobject && keyobject.split(separator)[1];
+            var model = templateManager.getModel(Firstname);
+            model = model[Firstname];
             if (model == null) {
-                throw new Error("Classe " + nomeModel + "." + nomeModel + " não encontrada");
+                throw new Error('Classe ' + Firstname + '.' + Firstname + ' não encontrada');
             }
-
             var instance = Object.create(model.prototype);
             instance.constructor.apply(instance, []);
-
-            var encontrouValores = false;
-
-            if(chaveObjeto)
-                ancestorCache[chaveObjeto] = instance;
-
-            encontrouValores = this.atribuaPropriedadesSimples(instance, registro,prefixo);
-            if( chaveObjeto != null ) {
-                encontrouValores = this.processeColecoes(gerenciadorDeMapeamentos, cacheDeObjetos, ancestorCache, instance, registro, chaveCombinada,prefixo) || encontrouValores;
+            var foundValues = false;
+            if (keyobject)
+                ancestorCache[keyobject] = instance;
+            foundValues = this.atribuaPropriedadesSimples(instance, record, prefix);
+            if (keyobject != null) {
+                foundValues = this.processCollections(templateManager, objectcache, ancestorCache, instance, record, combinedkey, prefix) || foundValues;
             }
-
-            delete ancestorCache[chaveObjeto];
-
-            if( !encontrouValores || (idChave &&  instance.id && idChave != instance.id.toString()))
+            delete ancestorCache[keyobject];
+            if (!foundValues || idChave && instance.id && idChave != instance.id.toString())
                 return null;
-
-            if (chaveCombinada && encontrouValores && instance.id != null && chaveCombinada.indexOf('null') < 0)
-                cacheDeObjetos[chaveCombinada] = instance;
-
+            if (combinedkey && foundValues && instance.id != null && combinedkey.indexOf('null') < 0)
+                objectcache[combinedkey] = instance;
         }
-
         return instance;
     };
-
-    NoResultMap.prototype.obtenhaNomeModel = function(registro,prefixo){
-        var tipoNo;
-        if(!this.noDiscriminador){
-            tipoNo = this.tipo;
+    NoResultMap.prototype.getNameModel = function (record, prefix) {
+        var typenot;
+        if (!this.noDiscriminator) {
+            tipoNo = this.type;
         } else {
-
-            var valorTipo = registro[this.noDiscriminador.obtenhaColuna(prefixo)];
-
-            for(var i in this.noDiscriminador.cases){
-                if(this.noDiscriminador.cases[i].valor==valorTipo)
-                    tipoNo = this.noDiscriminador.cases[i].tipo;
+            var valuetype = record[this.noDiscriminator.getColumn(prefix)];
+            for (var i in this.noDiscriminator.cases) {
+                if (this.noDiscriminator.cases[i].value == valuetype)
+                    tipoNo = this.noDiscriminator.cases[i].type;
             }
-
-            if(!tipoNo) tipoNo = this.tipo;
+            if (!typenot)
+                tipoNo = this.type;
         }
-
-        return   tipoNo.substring(tipoNo.lastIndexOf(".") + 1);
+        return typenot.substring(typenot.lastIndexOf('.') + 1);
     };
-    NoResultMap.prototype.processeColecoes = function (gerenciadorDeMapeamentos, cacheDeObjetos, ancestorCache, instance, registro, chaveObjeto,prefixo) {
-        var encontrouValor = false;
-
-        for (var i = 0; i < this.propriedades.length; i++) {
-            var propriedade = this.propriedades[i];
-
-            if ((propriedade instanceof NoPropriedadeColecao) == false && (propriedade instanceof NoAssociacao) == false) {
+    NoResultMap.prototype.processCollections = function (templateManager, objectcache, ancestorCache, instance, record, keyobject, prefix) {
+        var foundValue = false;
+        for (var i = 0; i < this.properties.length; i++) {
+            var property = this.properties[i];
+            if (property instanceof NoPropriacaoColecao == false && property instanceof Noaffiliation == false) {
                 continue;
             }
-
-            var objeto = propriedade.crieObjeto(gerenciadorDeMapeamentos, cacheDeObjetos, ancestorCache, instance, registro, chaveObjeto,prefixo);
-
-            encontrouValor = encontrouValor || (objeto != null);
+            var object = property.createObject(templateManager, objectcache, ancestorCache, instance, record, keyobject, prefix);
+            foundValue = foundValue || object != null;
         }
-
-        return encontrouValor;
+        return foundValue;
     };
-
-    NoResultMap.prototype.atribuaPropriedadesSimples = function (instance,registro,prefixo) {
-        var encontrouValores = false;
-        for (var j in this.propriedadesId) {
-            var propId = this.propriedadesId[j];
-
-            var valor = registro[propId.obtenhaColuna(prefixo)];
-
-            if (valor instanceof Buffer) {
-                if (valor.length == 1) {
-                    if (valor[0] == 0) {
-                        valor = false;
+    NoResultMap.prototype.atribuaPropriedadesSimples = function (instance, record, prefix) {
+        var foundValues = false;
+        for (var j in this.propertiesId) {
+            var propId = this.propertiesId[j];
+            var value = record[propId.getColumn(prefix)];
+            if (value instanceof Buffer) {
+                if (value.length == 1) {
+                    if (value[0] == 0) {
+                        value = false;
                     } else {
-                        valor = true;
+                        value = true;
                     }
                 }
             }
-
-            instance[propId.nome] = valor;
-
-            if (valor)
-                encontrouValores = true;
+            instance[propId.name] = value;
+            if (value)
+                foundValues = true;
         }
-
-        for (var j in this.propriedades) {
-            var propriedade = this.propriedades[j];
-
-            if (propriedade instanceof NoPropriedadeColecao) {
+        for (var j in this.properties) {
+            var property = this.properties[j];
+            if (property instanceof NoPropriacaoColecao) {
                 continue;
-            } else if (propriedade instanceof NoAssociacao) {
+            } else if (property instanceof Noaffiliation) {
                 continue;
             }
-
-            var valor = registro[propriedade.obtenhaColuna(prefixo)];
-
-            if (valor instanceof Buffer) {
-                if (valor.length == 1) {
-                    if (valor[0] == 0) {
-                        valor = false;
+            var value = record[property.getColumn(prefix)];
+            if (value instanceof Buffer) {
+                if (value.length == 1) {
+                    if (value[0] == 0) {
+                        value = false;
                     } else {
-                        valor = true;
+                        value = true;
                     }
                 }
             }
-
-            instance[propriedade.nome] = valor;
-
-            if (valor)
-                encontrouValores = true;
+            instance[property.name] = value;
+            if (value)
+                foundValues = true;
         }
-
-        return encontrouValores;
+        return foundValues;
     };
     return NoResultMap;
-})(No);
+}(Atthe);
 exports.NoResultMap = NoResultMap;
-
-var NoDiscriminator = (function () {
-    function NoDiscriminator(tipoJava, coluna) {
-        this.tipoJava = tipoJava;
-        this.coluna = coluna;
-
+var NoDiscriminator = function () {
+    function NoDiscriminator(javatype, column) {
+        this.javatype = javatype;
+        this.column = column;
         this.cases = [];
     }
-    NoDiscriminator.prototype.adicione = function (noCaseDiscriminator) {
+    NoDiscriminator.prototype.add = function (noCaseDiscriminator) {
         this.cases.push(noCaseDiscriminator);
     };
-
-    NoDiscriminator.prototype.imprima = function () {
-        console.log('discriminator(' + this.tipoJava + " " + this.coluna + ")");
-
+    NoDiscriminator.prototype.print = function () {
+        console.log('discriminator(' + this.javatype + ' ' + this.column + ')');
         for (var i in this.cases) {
-            var noCase = this.cases[i];
-
-            noCase.imprima();
+            var nochase = this.cases[i];
+            nochase.print();
         }
     };
-
-    NoDiscriminator.prototype.obtenhaColuna = function(prefixo){
-        return prefixo ? prefixo + this.coluna : this.coluna;
-    }
-
+    NoDiscriminator.prototype.getColumn = function (prefix) {
+        return prefix ? prefix + this.column : this.column;
+    };
     return NoDiscriminator;
-})();
+}();
 exports.NoDiscriminator = NoDiscriminator;
-
-var NoCaseDiscriminator = (function () {
-    function NoCaseDiscriminator(valor, tipo) {
-        this.valor = valor;
-        this.tipo = tipo;
+var NoCaseDiscriminator = function () {
+    function NoCaseDiscriminator(value, type) {
+        this.value = value;
+        this.type = type;
     }
-    NoCaseDiscriminator.prototype.imprima = function () {
-        console.log('\tcase(' + this.valor + " " + this.tipo + ")");
+    NoCaseDiscriminator.prototype.print = function () {
+        console.log('\tcase(' + this.value + ' ' + this.type + ')');
     };
     return NoCaseDiscriminator;
-})();
+}();
 exports.NoCaseDiscriminator = NoCaseDiscriminator;
-
-var Principal = (function () {
-    function Principal() {
+var Main = function () {
+    function Main() {
     }
-    Principal.prototype.leiaNoDiscriminator = function (noXml, noResultMap) {
+    Main.prototype.leiaNoDiscriminator = function (noXml, noResultMap) {
         var noDiscriminator = new NoDiscriminator(noXml.getAttributeNode('javaType').value, noXml.getAttributeNode('column').value);
-
         for (var i = 0; i < noXml.childNodes.length; i++) {
-            var no = noXml.childNodes[i];
-
-            if (no.nodeName == 'case') {
-                var valor = no.getAttributeNode('value').value;
-                var tipo = no.getAttributeNode('resultType').value;
-
-                var noCase = new NoCaseDiscriminator(valor, tipo);
-
-                noDiscriminator.adicione(noCase);
+            var atthe = noXml.childNodes[i];
+            if (atthe.nodeName == 'case') {
+                var value = atthe.getAttributeNode('value').value;
+                var type = atthe.getAttributeNode('resultType').value;
+                var nochase = new NoCaseDiscriminator(value, type);
+                noDiscriminator.add(nochase);
             }
         }
-
         return noDiscriminator;
     };
-
-    Principal.prototype.leiaAssociationProperty = function (no, noResultMap) {
-        var atributoColuna = no.getAttributeNode('column');
-        var valorColuna = '';
-
-        if (atributoColuna)
-            valorColuna = atributoColuna.value;
-
-        var resultMap = no.getAttributeNode('resultMap').value;
-
-        if( resultMap.indexOf(".") == -1 ) {
-            resultMap = noResultMap.mapeamento.nome + "." + resultMap;
+    Main.prototype.leiaAssociationProperty = function (atthe, noResultMap) {
+        var columnattribute = atthe.getAttributeNode('column');
+        var valueColumn = '';
+        if (columnattribute)
+            valorColuna = columnattribute.value;
+        var resultMap = atthe.getAttributeNode('resultMap').value;
+        if (resultMap.indexOf('.') == -1) {
+            resultMap = noResultMap.mapeamento.name + '.' + resultMap;
         }
-
         var columnPrefix = null;
-
-        if(no.getAttributeNode('columnPrefix'))
-            columnPrefix = no.getAttributeNode('columnPrefix').value;
-
-        noResultMap.adicione(new NoAssociacao(no.getAttributeNode('property').value, valorColuna,columnPrefix, resultMap));
+        if (atthe.getAttributeNode('columnPrefix'))
+            columnPrefix = atthe.getAttributeNode('columnPrefix').value;
+        noResultMap.add(new Noaffiliation(atthe.getAttributeNode('property').value, valueColumn, columnPrefix, resultMap));
     };
-
-    Principal.prototype.leiaCollectionProperty = function (no, noResultMap) {
-        var valorResultMap = '';
-
-        if (no.getAttributeNode('resultMap')) {
-            valorResultMap = no.getAttributeNode('resultMap').value;
+    Main.prototype.readCollectionProperty = function (atthe, noResultMap) {
+        var valueResultMap = '';
+        if (atthe.getAttributeNode('resultMap')) {
+            valorResultMap = atthe.getAttributeNode('resultMap').value;
         }
-
-        var valorOfType = '';
-
-        if (no.getAttributeNode('ofType')) {
-            valorOfType = no.getAttributeNode('ofType').value;
+        var valueOfType = '';
+        if (atthe.getAttributeNode('ofType')) {
+            valorOfType = atthe.getAttributeNode('ofType').value;
         }
-
-        var valorColuna = '';
-        if (no.getAttributeNode('column'))
-            valorColuna = no.getAttributeNode('column').value;
-
-        var valorTipoJava = '';
-        if (no.getAttributeNode('javaType'))
-            valorTipoJava = no.getAttributeNode('javaType').value;
-
+        var valueColumn = '';
+        if (atthe.getAttributeNode('column'))
+            valorColuna = atthe.getAttributeNode('column').value;
+        var valuetypeJava = '';
+        if (atthe.getAttributeNode('javaType'))
+            valorTipoJava = atthe.getAttributeNode('javaType').value;
         var columnPrefix = null;
-
-        if(no.getAttributeNode('columnPrefix'))
-            columnPrefix = no.getAttributeNode('columnPrefix').value;
-
-        noResultMap.adicione(new NoPropriedadeColecao(no.getAttributeNode('property').value, valorColuna, columnPrefix,valorResultMap, valorOfType, valorTipoJava));
+        if (atthe.getAttributeNode('columnPrefix'))
+            columnPrefix = atthe.getAttributeNode('columnPrefix').value;
+        noResultMap.add(new NoPropriacaoColecao(atthe.getAttributeNode('property').value, valueColumn, columnPrefix, valueResultMap, valueOfType, valuetypeJava));
     };
-
-    Principal.prototype.leiaResultProperty = function (no, noResultMap) {
-        var tipo = '';
-
-        noResultMap.adicione(new NoPropriedade(no.getAttributeNode('property').value, no.getAttributeNode('column').value));
+    Main.prototype.readResultProperty = function (atthe, noResultMap) {
+        var type = '';
+        noResultMap.add(new NoProperty(atthe.getAttributeNode('property').value, atthe.getAttributeNode('column').value));
     };
-
-    Principal.prototype.leiaResultMap = function (nome, noXmlResultMap, mapeamento) {
-        var nomeId = noXmlResultMap.getAttributeNode('id').value;
-        var tipo = noXmlResultMap.getAttributeNode('type').value;
-
-        var noResultMap = new NoResultMap(nomeId, tipo, mapeamento);
-
-        var possuiPropriedadeId = false;
+    Main.prototype.readResultMap = function (name, noXmlResultMap, mapping) {
+        var name = noXmlResultMap.getAttributeNode('id').value;
+        var type = noXmlResultMap.getAttributeNode('type').value;
+        var noResultMap = new NoResultMap(name, type, mapping);
+        var ownsId = false;
         for (var i = 0; i < noXmlResultMap.childNodes.length; i++) {
-            var no = noXmlResultMap.childNodes[i];
-
-            if (no.nodeName == 'id') {
-                var propriedadeId = new NoPropriedadeId(no.getAttributeNode('property').value, no.getAttributeNode('column').value);
-
-                noResultMap.definaPropriedadeId(propriedadeId);
-                possuiPropriedadeId = true;
-            } else if (no.nodeName == 'result') {
-                this.leiaResultProperty(no, noResultMap);
-            } else if (no.nodeName == 'association') {
-                this.leiaAssociationProperty(no, noResultMap);
-            } else if (no.nodeName == 'collection') {
-                this.leiaCollectionProperty(no, noResultMap);
-            } else if (no.nodeName == 'discriminator') {
-                var noDiscriminator = this.leiaNoDiscriminator(no, noResultMap);
-
-                noResultMap.definaDiscriminator(noDiscriminator);
+            var atthe = noXmlResultMap.childNodes[i];
+            if (atthe.nodeName == 'id') {
+                var propertyId = new NoPropriedadeId(atthe.getAttributeNode('property').value, atthe.getAttributeNode('column').value);
+                noResultMap.setIdProperty(propertyId);
+                ownsId = true;
+            } else if (atthe.nodeName == 'result') {
+                this.readResultProperty(atthe, noResultMap);
+            } else if (atthe.nodeName == 'association') {
+                this.leiaAssociationProperty(atthe, noResultMap);
+            } else if (atthe.nodeName == 'collection') {
+                this.readCollectionProperty(atthe, noResultMap);
+            } else if (atthe.nodeName == 'discriminator') {
+                var noDiscriminator = this.leiaNoDiscriminator(atthe, noResultMap);
+                noResultMap.defineDiscriminator(noDiscriminator);
             }
         }
-
-        if (!possuiPropriedadeId) {
-            noResultMap.encontrePropriedadeId();
+        if (!ownsId) {
+            noResultMap.findPropertyId();
         }
-
         return noResultMap;
     };
-
-    Principal.prototype.leia = function (nome, gchild, mapeamento) {
+    Main.prototype.read = function (name, gchild, mapping) {
         if (gchild.nodeName == 'resultMap') {
-            return this.leiaResultMap(nome, gchild, mapeamento);
+            return this.readResultMap(name, gchild, mapping);
         }
-
-        var nomeId = gchild.getAttributeNode('id').value;
-
-        var noComando;
+        var name = gchild.getAttributeNode('id').value;
+        var incharge;
         if (gchild.nodeName == 'select') {
             var noResultMap = gchild.getAttributeNode('resultMap');
-            var valorResultMap = '';
+            var valueResultMap = '';
             if (noResultMap)
                 valorResultMap = noResultMap.value;
-
             var noJavaType = gchild.getAttributeNode('resultType');
-            var valorJavaType = '';
+            var valueJavaType = '';
             if (noJavaType)
-                valorJavaType = noJavaType.value;
-
-            noComando = new NoSelect(nomeId, valorResultMap, valorJavaType, mapeamento);
+                valueJavaType = noJavaType.value;
+            incharge = new NoSelect(name, valueResultMap, valueJavaType, mapping);
         } else {
-            noComando = new No(nomeId, mapeamento);
+            incharge = new Atthe(name, mapping);
         }
-
         for (var i = 0; i < gchild.childNodes.length; i++) {
-            var no = gchild.childNodes[i];
-
-            if (no.nodeName == 'choose') {
-                this.leiaChoose('choose', no, noComando, mapeamento);
-            } else if (no.nodeName == 'if') {
-                this.leiaIf('choose', no, noComando, mapeamento);
-            } else if (no.nodeName == 'foreach') {
-                this.leiaForEach('foreach', no, noComando, mapeamento);
+            var atthe = gchild.childNodes[i];
+            if (atthe.nodeName == 'choose') {
+                this.readChoose('choose', atthe, incharge, mapping);
+            } else if (atthe.nodeName == 'if') {
+                this.readit('choose', atthe, incharge, mapping);
+            } else if (atthe.nodeName == 'foreach') {
+                this.readForEach('foreach', atthe, incharge, mapping);
             } else {
-                if (no.hasChildNodes() == false) {
-                    var noString = new NoString(no.textContent, mapeamento);
-
-                    noComando.adicione(noString);
+                if (atthe.hasChildNodes() == false) {
+                    var noString = new NoString(atthe.textContent, mapping);
+                    incharge.add(noString);
                 }
             }
         }
-
-        return noComando;
+        return incharge;
     };
-
-    Principal.prototype.leiaForEach = function (nome, no, noPrincipal, mapeamento) {
-        var valorSeparador = '';
-        if (no.getAttributeNode('separator')) {
-            valorSeparador = no.getAttributeNode('separator').value;
+    Main.prototype.readForEach = function (name, atthe, nomain, mapping) {
+        var valueSeparador = '';
+        if (atthe.getAttributeNode('separator')) {
+            valueSeparador = atthe.getAttributeNode('separator').value;
         }
-
-        var valorAbertura = '';
-        if (no.getAttributeNode('open')) {
-            valorAbertura = no.getAttributeNode('open').value;
+        var valueAverage = '';
+        if (atthe.getAttributeNode('open')) {
+            valueAverage = atthe.getAttributeNode('open').value;
         }
-
-        var valorFechamento = '';
-        if (no.getAttributeNode('close')) {
-            valorFechamento = no.getAttributeNode('close').value;
+        var closingvalue = '';
+        if (atthe.getAttributeNode('close')) {
+            closingvalue = atthe.getAttributeNode('close').value;
         }
-
-        var valorIndex = '';
-        if (no.getAttributeNode('index')) {
-            valorIndex = no.getAttributeNode('index').value;
+        var valueIndex = '';
+        if (atthe.getAttributeNode('index')) {
+            valueIndex = atthe.getAttributeNode('index').value;
         }
-
-        var valorCollection = '';
-        if (no.getAttributeNode('collection')) {
-            valorCollection = no.getAttributeNode('collection').value;
+        var valueCollection = '';
+        if (atthe.getAttributeNode('collection')) {
+            valueCollection = atthe.getAttributeNode('collection').value;
         }
-
-        var noForEach = new NoForEach(no.getAttributeNode('item').value, valorIndex, valorSeparador, valorAbertura,
-            valorFechamento, no.textContent, valorCollection, mapeamento);
-
-        noPrincipal.adicione(noForEach);
+        var noday = new NoForEach(atthe.getAttributeNode('item').value, valueIndex, valueSeparador, valueAverage, closingvalue, atthe.textContent, valueCollection, mapping);
+        nomain.add(noday);
     };
-
-    Principal.prototype.leiaIf = function (nome, no, noPrincipal, mapeamento) {
-        var noIf = new NoIf(no.getAttributeNode('test').value, no.childNodes[0].toString(), mapeamento);
-
-        for (var i = 0; i < no.childNodes.length; i++) {
-            var noFilho = no.childNodes[i];
-
-            if (noFilho.nodeName == 'choose') {
-                this.leiaChoose('choose', noFilho, noIf, mapeamento);
-            } else if (noFilho.nodeName == 'if') {
-                this.leiaIf('choose', noFilho, noIf, mapeamento);
-            } else if (noFilho.nodeName == 'foreach') {
-                this.leiaForEach('foreach', noFilho, noIf, mapeamento);
+    Main.prototype.readit = function (name, atthe, nomain, mapping) {
+        var noIf = new NoIf(atthe.getAttributeNode('test').value, atthe.childNodes[0].toString(), mapping);
+        for (var i = 0; i < atthe.childNodes.length; i++) {
+            var noson = atthe.childNodes[i];
+            if (noson.nodeName == 'choose') {
+                this.readChoose('choose', noson, noIf, mapping);
+            } else if (noson.nodeName == 'if') {
+                this.readit('choose', noson, noIf, mapping);
+            } else if (noson.nodeName == 'foreach') {
+                this.readForEach('foreach', noson, noIf, mapping);
             } else {
-                if (noFilho.hasChildNodes() == false) {
-                    var noString = new NoString(noFilho.textContent, mapeamento);
-
-                    noIf.adicione(noString);
+                if (noson.hasChildNodes() == false) {
+                    var noString = new NoString(noson.textContent, mapping);
+                    noIf.add(noString);
                 }
             }
         }
-
-        noPrincipal.adicione(noIf);
+        nomain.add(noIf);
     };
-
-    Principal.prototype.leiaChoose = function (nome, no, noPrincipal, mapeamento) {
-        var noChoose = new NoChoose(mapeamento);
-
-        for (var i = 0; i < no.childNodes.length; i++) {
-            var filhos = no.childNodes;
-
-            var noFilho = filhos[i];
-
-            if (noFilho.nodeName == 'when') {
-                noChoose.adicione(this.leiaNoWhen("when", noFilho, no, mapeamento));
-            } else if (noFilho.nodeName == 'otherwise') {
-                noChoose.adicione(new NoOtherwise(noFilho.childNodes[0].toString(), mapeamento));
+    Main.prototype.readChoose = function (name, atthe, nomain, mapping) {
+        var nohead = new NoChoose(mapping);
+        for (var i = 0; i < atthe.childNodes.length; i++) {
+            var children = atthe.childNodes;
+            var noson = children[i];
+            if (noson.nodeName == 'when') {
+                nohead.add(this.readNoWhen('when', noson, atthe, mapping));
+            } else if (noson.nodeName == 'otherwise') {
+                nohead.add(new NoOtherwise(noson.childNodes[0].toString(), mapping));
             }
         }
-
-        noPrincipal.adicione(noChoose);
+        nomain.add(nohead);
     };
-
-    Principal.prototype.leiaNoWhen = function(nome, no, noPricipal, mapeamento) {
-        var expressaoTeste = no.getAttributeNode('test').value;
-
-        var noWhen = new NoWhen(expressaoTeste, '', mapeamento);
-
-        for (var i = 0; i < no.childNodes.length; i++) {
-            var noFilho = no.childNodes[i];
-
-            if (noFilho.nodeName == 'choose') {
-                this.leiaChoose('choose', noFilho, noWhen, mapeamento);
-            } else if (noFilho.nodeName == 'if') {
-                this.leiaIf('choose', noFilho, noWhen, mapeamento);
-            } else if (noFilho.nodeName == 'foreach') {
-                this.leiaForEach('foreach', noFilho, noWhen, mapeamento);
+    Main.prototype.readNoWhen = function (name, atthe, noPrivate, mapping) {
+        var expressionTest = atthe.getAttributeNode('test').value;
+        var nowhen = new Nowhen(expressionTest, '', mapping);
+        for (var i = 0; i < atthe.childNodes.length; i++) {
+            var noson = atthe.childNodes[i];
+            if (noson.nodeName == 'choose') {
+                this.readChoose('choose', noson, nowhen, mapping);
+            } else if (noson.nodeName == 'if') {
+                this.readit('choose', noson, nowhen, mapping);
+            } else if (noson.nodeName == 'foreach') {
+                this.readForEach('foreach', noson, nowhen, mapping);
             } else {
-                if (noFilho.hasChildNodes() == false) {
-                    var noString = new NoString(noFilho.textContent, mapeamento);
-
-                    noWhen.adicione(noString);
+                if (noson.hasChildNodes() == false) {
+                    var noString = new NoString(noson.textContent, mapping);
+                    nowhen.add(noString);
                 }
             }
         }
-
-        return noWhen;
-    }
-
-    Principal.prototype.processe = function (dir_xml) {
-        var mapaNos = {};
-
-        var gerenciadorDeMapeamentos = new GerenciadorDeMapeamentos();
-
-
+        return nowhen;
+    };
+    Main.prototype.process = function (dir_xml) {
+        var mapNos = {};
+        var templateManager = new TemplateMapManager();
         var models = {};
-
-        var walk = function(dir, done) {
+        var walk = function (dir, done) {
             var results = [];
-            var list = fs.readdirSync(dir) ;
+            var list = fs.readdirSync(dir);
             var pending = list.length;
-            if (!pending) return done(null, results);
-            list.forEach(function(file) {
-                var file = dir + '/' + file;
-
-                var stat = fs.statSync(file);
-
-                if (stat && stat.isDirectory() && file.indexOf('.svn') ==-1) {
-                    walk(file, function(err, res) {
+            if (!pending)
+                return done(null, results);
+            list.forEach(function (filet) {
+                var filet = dir + '/' + filet;
+                var stat = fs.statSync(filet);
+                if (stat && stat.isDirectory() && filet.indexOf('.svn') == -1) {
+                    walk(filet, function (err, res) {
                         results = results.concat(res);
-                        if (!--pending) done(null, results);
+                        if (!--pending)
+                            done(null, results);
                     });
                 } else {
-                    results.push(file);
-                    if (!--pending) done(null, results);
+                    results.push(filet);
+                    if (!--pending)
+                        done(null, results);
                 }
-
-
             });
         };
-
-
-        var ext =  global.domainExt || '.js',
-            diretorioDominio = global.domainDir || './domain';
-
-        walk(diretorioDominio,function(err, arquivos) {
-            for (var i in arquivos) {
-                var arquivo = arquivos[i];
-                if( arquivo.indexOf(ext) == -1 ) continue;
-
-                var nomeArquivo = path.basename(arquivo);
-                var nomeClasseDominio =  nomeArquivo.replace(ext,'');
-                var arquivoPath = path.join(path.resolve('.'),arquivo);
-
-                if(!fs.existsSync(arquivoPath)) throw new Error('Arquivo não encontrado:' + arquivoPath);
-
-                var model = require(path.join(path.resolve('.'),arquivo));
-
-                gerenciadorDeMapeamentos.adicioneModel(nomeClasseDominio,model);
+        var ext = global.domainExt || '.js', directoryDomain = global.domainDir || './domain';
+        walk(directoryDomain, function (err, files) {
+            for (var i in files) {
+                var archive = files[i];
+                if (archive.indexOf(ext) == -1)
+                    continue;
+                var filename = path.basename(archive);
+                var nameClassDomain = filename.replace(ext, '');
+                var PATHfile = path.join(path.resolve('.'), archive);
+                if (!fs.existsSync(PATHfile))
+                    throw new Error('Arquivo não encontrado:' + PATHfile);
+                var model = require(path.join(path.resolve('.'), archive));
+                templateManager.addModel(nameClassDomain, model);
             }
         });
-
-        var arquivos = fs.readdirSync(dir_xml);
-        for (var i in arquivos) {
-            var arquivo = arquivos[i];
-
-            var mapeamento = this.processeArquivo(dir_xml + arquivo);
-
-            gerenciadorDeMapeamentos.adicione(mapeamento);
+        var files = fs.readdirSync(dir_xml);
+        for (var i in files) {
+            var archive = files[i];
+            var mapping = this.processFile(dir_xml + archive);
+            templateManager.add(mapping);
         }
-
-        return gerenciadorDeMapeamentos;
+        return templateManager;
     };
-
-
-    Principal.prototype.processeArquivo = function (nomeArquivo) {
-        if (fs.lstatSync(nomeArquivo).isDirectory())
+    Main.prototype.processFile = function (filename) {
+        if (fs.lstatSync(filename).isDirectory())
             return null;
-
-        var xml = fs.readFileSync(nomeArquivo).toString();
-
+        var xml = fs.readFileSync(filename).toString();
         var xmlDoc = new DOMParser().parseFromString(xml);
-
         if (xmlDoc.documentElement.nodeName != 'mapper') {
             return null;
         }
-
-        var nos = xmlDoc.documentElement.childNodes;
-
-        var mapeamento = new Mapeamento(xmlDoc.documentElement.getAttributeNode('namespace').value);
-        for (var i = 0; i < nos.length; i++) {
-            var noXml = nos[i];
-
-            if(noXml.nodeName != '#text' && noXml.nodeName != '#comment') {
-                var no = this.leia(noXml.nodeName, noXml, mapeamento);
-
-                //no.imprima();
-                mapeamento.adicione(no);
+        var we = xmlDoc.documentElement.childNodes;
+        var mapping = new Mapping(xmlDoc.documentElement.getAttributeNode('namespace').value);
+        for (var i = 0; i < we.length; i++) {
+            var noXml = we[i];
+            if (noXml.nodeName != '#text' && noXml.nodeName != '#comment') {
+                var atthe = this.read(noXml.nodeName, noXml, mapping);
+                mapping.add(atthe);
             }
         }
-
-        return mapeamento;
+        return mapping;
     };
-    return Principal;
-})();
-exports.Principal = Principal;
-
-var GerenciadorDeMapeamentos = (function () {
-    function GerenciadorDeMapeamentos() {
-        this.mapeamentos = [];
-        this.mapaMapeamentos = {};
+    return Main;
+}();
+exports.Main = Main;
+var TemplateMapManager = function () {
+    function TemplateMapManager() {
+        this.mappings = [];
+        this.mapMapping = {};
         this.models = {};
     }
-    GerenciadorDeMapeamentos.prototype.obtenhaModel = function (nome) {
-        return this.models[nome];
+    TemplateMapManager.prototype.getModel = function (name) {
+        return this.models[name];
     };
-
-    GerenciadorDeMapeamentos.prototype.adicioneModel = function (nomeClasseDominio, classe) {
-        if (this.models[nomeClasseDominio] != null)
+    TemplateMapManager.prototype.addModel = function (nameClassDomain, classe) {
+        if (this.models[nameClassDomain] != null)
             return;
-
-        this.models[nomeClasseDominio] = classe;
+        this.models[nameClassDomain] = classe;
     };
-
-    GerenciadorDeMapeamentos.prototype.adicione = function (mapeamento) {
-        if (mapeamento == null)
+    TemplateMapManager.prototype.add = function (mapping) {
+        if (mapping == null)
             return;
-
-        this.mapaMapeamentos[mapeamento.nome] = mapeamento;
-
-        this.mapeamentos.push(mapeamento);
+        this.mapMapping[mapping.name] = mapping;
+        this.mappings.push(mapping);
     };
-
-    GerenciadorDeMapeamentos.prototype.obtenhaResultMap = function (nomeCompletoResultMap) {
-        var nomeNamespace = nomeCompletoResultMap.split(".")[0];
-        var nomeResultMap = nomeCompletoResultMap.split(".")[1];
-
-        var mapeamento = this.mapaMapeamentos[nomeNamespace];
-
-        if (mapeamento == null) {
-            throw new Error("Mapeamento " + nomeNamespace + " não encontrado");
+    TemplateMapManager.prototype.getResultMap = function (fullnameResultMap) {
+        var nameNamespace = fullnameResultMap.split('.')[0];
+        var nameResultMap = fullnameResultMap.split('.')[1];
+        var mapping = this.mapMapping[nameNamespace];
+        if (mapping == null) {
+            throw new Error('Mapping ' + nameNamespace + ' não encontrado');
         }
-
-        var resultMap = mapeamento.obtenhaResultMap(nomeResultMap);
-
+        var resultMap = mapping.getResultMap(nameResultMap);
         return resultMap;
-
     };
-
-    GerenciadorDeMapeamentos.prototype.obtenhaNo = function (nomeCompletoResultMap) {
-        var nomeNamespace = nomeCompletoResultMap.split(".")[0];
-
-        var idNo = nomeCompletoResultMap.split(".")[1];
-
-        var mapeamento = this.mapaMapeamentos[nomeNamespace];
-
-        return mapeamento.obtenhaNo(idNo);
+    TemplateMapManager.prototype.getNo = function (fullnameResultMap) {
+        var nameNamespace = fullnameResultMap.split('.')[0];
+        var idon = fullnameResultMap.split('.')[1];
+        var mapping = this.mapMapping[nameNamespace];
+        return mapping.getNo(idon);
     };
-
-    GerenciadorDeMapeamentos.prototype.insira = function (nomeCompleto, objeto, callback) {
+    TemplateMapManager.prototype.insert = function (fullname, object, callback) {
         var me = this;
-        var no = this.obtenhaNo(nomeCompleto);
-
-        var comandoSql = new ComandoSql();
-
-        no.obtenhaSql(comandoSql, objeto);
-
-        //console.log(comandoSql.sql);
-        // console.log(comandoSql.parametros);
-
-        var dominio = require('domain').active;
-
-        this.conexao(function(connection){
-            connection.query(comandoSql.sql,comandoSql.parametros,dominio.intercept(function (rows, fields,err) {
-
-                if( rows.insertId ) {
-                    objeto.id = rows.insertId;
+        var atthe = this.getNo(fullname);
+        var sqlcommand = new SqlCommand();
+        atthe.getSql(sqlcommand, object);
+        var domain = require('domain').active;
+        this.connection(function (connection) {
+            connection.query(sqlcommand.sql, sqlcommand.parameters, domain.intercept(function (rows, fields, err) {
+                if (rows.insertId) {
+                    object.id = rows.insertId;
                 }
-
                 if (callback) {
-                    //console.log('callback insert...')
                     callback();
                 }
             }));
         });
-
     };
-
-    GerenciadorDeMapeamentos.prototype.atualize = function (nomeCompleto, objeto, callback) {
+    TemplateMapManager.prototype.update = function (fullname, object, callback) {
         var me = this;
-        var no = this.obtenhaNo(nomeCompleto);
-
-        var comandoSql = new ComandoSql();
-        var sql = no.obtenhaSql(comandoSql, objeto);
-
-        //console.log(sql);
-
-        var dominio = require('domain').active;
-
-        this.conexao(function(connection) {
-            connection.query(comandoSql.sql, comandoSql.parametros,dominio.intercept(function (rows, fields,err)  {
+        var atthe = this.getNo(fullname);
+        var sqlcommand = new SqlCommand();
+        var sql = atthe.getSql(sqlcommand, object);
+        var domain = require('domain').active;
+        this.connection(function (connection) {
+            connection.query(sqlcommand.sql, sqlcommand.parameters, domain.intercept(function (rows, fields, err) {
                 if (err)
                     throw err;
-
-                if (callback) {
-                    callback(rows.affectedRows);
-                }
-
-            }));
-        });
-
-
-    };
-
-    GerenciadorDeMapeamentos.prototype.remova = function (nomeCompleto, objeto, callback) {
-        var me = this;
-        var no = this.obtenhaNo(nomeCompleto);
-
-        var comandoSql = new ComandoSql();
-        var sql = no.obtenhaSql(comandoSql, objeto);
-
-        var dominio = require('domain').active;
-
-        //console.log(sql);
-
-        this.conexao(function(connection) {
-            connection.query(comandoSql.sql, comandoSql.parametros, dominio.intercept(function (rows, fields,err) {
-                if (err)
-                    throw err;
-
                 if (callback) {
                     callback(rows.affectedRows);
                 }
             }));
         });
-
-
     };
-
-    GerenciadorDeMapeamentos.prototype.selectOne = function (nomeCompleto, dados, callback) {
-        // console.log('buscando ' + nomeCompleto);
-        this.selectList(nomeCompleto, dados, function (objetos) {
-            if (objetos.length == 1)
-                callback(objetos[0]);
+    TemplateMapManager.prototype.remove = function (fullname, object, callback) {
+        var me = this;
+        var atthe = this.getNo(fullname);
+        var sqlcommand = new SqlCommand();
+        var sql = atthe.getSql(sqlcommand, object);
+        var domain = require('domain').active;
+        this.connection(function (connection) {
+            connection.query(sqlcommand.sql, sqlcommand.parameters, domain.intercept(function (rows, fields, err) {
+                if (err)
+                    throw err;
+                if (callback) {
+                    callback(rows.affectedRows);
+                }
+            }));
+        });
+    };
+    TemplateMapManager.prototype.selectOne = function (fullname, data, callback) {
+        this.selectList(fullname, data, function (objects) {
+            if (objects.length == 1)
+                callback(objects[0]);
             callback(null);
         });
     };
-
-    GerenciadorDeMapeamentos.prototype.selectList = function (nomeCompleto, dados, callback) {
+    TemplateMapManager.prototype.selectList = function (fullname, data, callback) {
         var me = this;
-        var no = this.obtenhaNo(nomeCompleto);
-
-        var comandoSql = new ComandoSql();
-
-        no.obtenhaSql(comandoSql, dados);
-
-
-        var dominio = require('domain').active;
-        this.conexao(function(connection){
-            //console.log(comandoSql.sql);
-            //console.log(comandoSql.parametros);
-            connection.query(comandoSql.sql, comandoSql.parametros, dominio.intercept(function (rows, fields,err) {
+        var atthe = this.getNo(fullname);
+        var sqlcommand = new SqlCommand();
+        atthe.getSql(sqlcommand, data);
+        var domain = require('domain').active;
+        this.connection(function (connection) {
+            connection.query(sqlcommand.sql, sqlcommand.parameters, domain.intercept(function (rows, fields, err) {
                 if (err) {
                     console.log(err);
                     console.log(err.message);
                     throw err;
                 }
-                callback(rows)
+                callback(rows);
             }));
-
-        })
-
-
+        });
     };
-
-    GerenciadorDeMapeamentos.prototype.crie = function () {
-        var instance = Object.create(GerenciadorDeMapeamentos);
+    TemplateMapManager.prototype.create = function () {
+        var instance = Object.create(TemplateMapManager);
         instance.constructor.apply(instance, []);
-
         return instance;
     };
-
-    GerenciadorDeMapeamentos.prototype.contexto=function(){
-        var dominio = require('domain').active;
-
-        return dominio.contexto;
+    TemplateMapManager.prototype.context = function () {
+        var domain = require('domain').active;
+        return domain.context;
     };
-
-    GerenciadorDeMapeamentos.prototype.conexao=function(callback){
-        return this.contexto().obtenhaConexao(callback);
-    }
-
-    GerenciadorDeMapeamentos.prototype.transacao=function(callback){
-        return this.contexto().inicieTransacao(callback);
-    }
-
-    return GerenciadorDeMapeamentos;
-})();
-exports.GerenciadorDeMapeamentos = GerenciadorDeMapeamentos;
-
-var Mapeamento = (function () {
-    function Mapeamento(nome) {
-        this.nome = nome;
+    TemplateMapManager.prototype.connection = function (callback) {
+        return this.context().getConnected(callback);
+    };
+    TemplateMapManager.prototype.transaction = function (callback) {
+        return this.context().initiationTranslation(callback);
+    };
+    return TemplateMapManager;
+}();
+exports.TemplateMapManager = TemplateMapManager;
+var Mapping = function () {
+    function Mapping(name) {
+        this.name = name;
         this.filhos = [];
         this.resultMaps = [];
         this.resultsMapsPorId = {};
         this.nosPorId = {};
     }
-    Mapeamento.prototype.adicione = function (noFilho) {
-        noFilho.mapeamento = this;
-
-        this.filhos.push(noFilho);
-
-        if (noFilho instanceof NoResultMap) {
-            this.resultMaps.push(noFilho);
-
-            this.resultsMapsPorId[noFilho.id] = noFilho;
+    Mapping.prototype.add = function (noson) {
+        noson.mapeamento = this;
+        this.filhos.push(noson);
+        if (noson instanceof NoResultMap) {
+            this.resultMaps.push(noson);
+            this.resultsMapsPorId[noson.id] = noson;
         }
-
-        this.nosPorId[noFilho.id] = noFilho;
+        this.nosPorId[noson.id] = noson;
     };
-
-    Mapeamento.prototype.obtenhaResultMap = function (nomeResultMap) {
-        return this.resultsMapsPorId[nomeResultMap];
+    Mapping.prototype.getResultMap = function (nameResultMap) {
+        return this.resultsMapsPorId[nameResultMap];
     };
-
-    Mapeamento.prototype.obtenhaNo = function (idNo) {
-        return this.nosPorId[idNo];
+    Mapping.prototype.getNo = function (idon) {
+        return this.nosPorId[idon];
     };
-    return Mapeamento;
-})();
-
+    return Mapping;
+}();
 exports.dir_xml = dir_xml;
-exports.Mapeamento = Mapeamento;
-exports.Contexto = Contexto;
-
-//# sourceMappingURL=No.js.map
+exports.Mapping = Mapping;
+exports.Context = Context;
