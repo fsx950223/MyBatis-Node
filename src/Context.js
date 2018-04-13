@@ -12,7 +12,6 @@ Context.prototype = {
         }
     },
     getConnected(callback) {
-        var me = this;
         if (this.connection) {
             return callback(this.connection);
         }
@@ -20,19 +19,18 @@ Context.prototype = {
         if (this.loading == true)
             return;
         this.loading = true;
-        pool.getConnection(function (err, connection) {
+        pool.getConnection((err, connection)=> {
             if (err) {
                 console.log(err);
             }
-            me.uploaded(connection);
+            this.uploaded(connection);
         });
     },
     initiationTranslation(callback) {
-        var me = this;
-        function withchange(callback) {
-            me.connection.beginTransaction(function () {
-                return callback(me.connection, function (success, error) {
-                    me.commit(success);
+        const withchange=(callback)=> {
+            this.connection.beginTransaction(()=> {
+                return callback(this.connection, (success, error)=> {
+                    this.commit(success);
                 });
             });
         }
@@ -50,10 +48,9 @@ Context.prototype = {
     commit(callback) {
         if (!this.connection)
             return;
-        var me = this;
-        me.connection.commit(function (result, err) {
+        this.connection.commit( (result, err)=> {
             if (err) {
-                me.connection.rollback(function () {
+                this.connection.rollback(function () {
                     if (callback)
                         callback(false);
                 });
