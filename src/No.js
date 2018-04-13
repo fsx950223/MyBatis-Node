@@ -7,6 +7,7 @@ const DOMParser = require('xmldom').DOMParser;
 const s = require('string');
 const Context = require('./Context');
 const context = new Context()
+let poolObj
 class SqlCommand{
     constructor(){
         this.sql = '';
@@ -560,7 +561,8 @@ class NoCaseDiscriminator{
 exports.NoCaseDiscriminator = NoCaseDiscriminator;
 
 var Main = function () {
-    function Main() {
+    function Main(pool) {
+        poolObj=pool
     }
     Main.prototype.leiaNoDiscriminator = function (noXml, noResultMap) {
         var noDiscriminator = new NoDiscriminator(noXml.getAttributeNode('javaType').value, noXml.getAttributeNode('column').value);
@@ -836,84 +838,78 @@ var TemplateMapManager = function () {
         var mapping = this.mapMapping[nameNamespace];
         return mapping.getNo(idon);
     };
-    TemplateMapManager.prototype.insert = function (fullname, object, callback) {
-
-        var no = this.getNo(fullname);
-        var sqlcommand = new SqlCommand();
-        no.getSql(sqlcommand, object);
-        this.connection(function (connection) {
-            connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
-                if (rows.insertId) {
-                    object.id = rows.insertId;
-                }
-                if (callback) {
-                    callback();
-                }
+    TemplateMapManager.prototype.insert = function (fullname, object) {
+        return new Promise((resolve,reject)=>{
+            var no = this.getNo(fullname);
+            var sqlcommand = new SqlCommand();
+            no.getSql(sqlcommand, object);
+            this.connection(function (connection) {
+                connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
+                    if (err)
+                        reject(err);
+                    resolve(rows.affectedRows)
+                });
             });
-        });
+        })
     };
-    TemplateMapManager.prototype.update = function (fullname, object, callback) {
-
-        var no = this.getNo(fullname);
-        var sqlcommand = new SqlCommand();
-        var sql = no.getSql(sqlcommand, object);
-
-        this.connection(function (connection) {
-            connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
-                if (err)
-                    throw err;
-                if (callback) {
-                    callback(rows.affectedRows);
-                }
+    TemplateMapManager.prototype.update = function (fullname, object) {
+        return new Promise((resolve,reject)=>{
+            var no = this.getNo(fullname);
+            var sqlcommand = new SqlCommand();
+            var sql = no.getSql(sqlcommand, object);
+    
+            this.connection(function (connection) {
+                connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
+                    if (err)
+                        reject(err);
+                    resolve(rows.affectedRows)
+                });
             });
-        });
+        })
     };
-    TemplateMapManager.prototype.remove = function (fullname, object, callback) {
-        var no = this.getNo(fullname);
-        var sqlcommand = new SqlCommand();
-        var sql = no.getSql(sqlcommand, object);
-        this.connection(function (connection) {
-            connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
-                if (err)
-                    throw err;
-                if (callback) {
-                    callback(rows.affectedRows);
-                }
+    TemplateMapManager.prototype.remove = function (fullname, object) {
+        return new Promise((resolve,reject)=>{
+            var no = this.getNo(fullname);
+            var sqlcommand = new SqlCommand();
+            var sql = no.getSql(sqlcommand, object);
+            this.connection(function (connection) {
+                connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
+                    if (err)
+                        reject(err);
+                    resolve(rows.affectedRows);
+                });
             });
-        });
+        })
     };
-    TemplateMapManager.prototype.selectOne = function (fullname, data, callback) {
-        this.selectList(fullname, data, function (objects) {
-            if (objects.length == 1)
-                callback(objects[0]);
-            callback(null);
-        });
-    };
-    TemplateMapManager.prototype.selectList = function (fullname, data, callback) {
-
-        var no = this.getNo(fullname);
-        var sqlcommand = new SqlCommand();
-        no.getSql(sqlcommand, data);
-        this.connection(function (connection) {
-            connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
-                if (err) {
-                    console.log(err);
-                    throw err;
-                }
-                callback(rows);
+    TemplateMapManager.prototype.selectOne = function (fullname, data) {
+        return new Promise((resolve,reject)=>{
+            this.selectList(fullname, data).then((objects)=>{
+                if (objects.length == 1)
+                    resolve(objects[0]);
+                resolve(null);
             });
-        });
+        })
     };
-    TemplateMapManager.prototype.create = function () {
-        var instance = Object.create(TemplateMapManager);
-        instance.constructor.apply(instance, []);
-        return instance;
+    TemplateMapManager.prototype.selectList = function (fullname, data) {
+        return new Promise((resolve,reject)=>{
+            var no = this.getNo(fullname);
+            var sqlcommand = new SqlCommand();
+            no.getSql(sqlcommand, data);
+            this.connection(function (connection) {
+                connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve(rows);
+                });
+            });
+        })
     };
     TemplateMapManager.prototype.context = function () {
         return context;
     };
     TemplateMapManager.prototype.connection = function (callback) {
-        return this.context().getConnected(callback);
+        return this.context().getConnected(callback,poolObj);
     };
     TemplateMapManager.prototype.transaction = function (callback) {
         return this.context().initiationTranslation(callback);

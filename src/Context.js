@@ -11,7 +11,7 @@ Context.prototype = {
             this.callbacks[i](this.connection);
         }
     },
-    getConnected(callback) {
+    getConnected(callback,pool) {
         if (this.connection) {
             return callback(this.connection);
         }
