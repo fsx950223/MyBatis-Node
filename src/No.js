@@ -76,7 +76,7 @@ var No = function () {
                 expression = expression.replace(stretch, '?');
                 sqlcommand.addParameter(value);
             } else if (util.isArray(propertyvalue)) {
-                throw new Error('Não pode traduzir trecho ' + stretch + ' pela coleção: ' + propertyvalue);
+                throw new Error('Can not translate snippet ' + stretch + ' by collection: ' + propertyvalue);
             }
         }
         return expression;
@@ -474,7 +474,7 @@ class NoResultMap extends No{
         var foundValue = false;
         for (var i = 0; i < this.properties.length; i++) {
             var property = this.properties[i];
-            if (property instanceof NoPropriacaoColecao == false && property instanceof Noaffiliation == false) {
+            if (!(property instanceof NoPropriacaoColecao) && !(property instanceof Noaffiliation)) {
                 continue;
             }
             var object = property.createObject(templateManager, objectcache, ancestorCache, instance, record, keyobject, prefix);

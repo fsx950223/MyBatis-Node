@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Fibonacci-Solucoes-Ageis/MyBatisNodeJs.git"
+    "url": "https://github.com/fsx950223/MyBatisNodeJs.git"
   },
   "keywords": [
     "mybatis",
@@ -28,9 +28,9 @@
     "relational",
     "mapper\""
   ],
-  "author": "Fibonacci Soluções Ágeis LTDA",
+  "author": "fsx950223",
   "license": "BSD-2-Clause",
   "bugs": {
-    "url": "https://github.com/Fibonacci-Solucoes-Ageis/MyBatisNodeJs/issues"
+    "url": "https://github.com/fsx950223/MyBatisNodeJs/issues"
   }
 }
