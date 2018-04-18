@@ -53,11 +53,11 @@ var No = function () {
     No.prototype.getFullName = function () {
         return this.mapping.name + '.' + this.id;
     };
-    No.prototype.processexpression = function (text, sqlcommand, data) {
+    No.prototype.processexpression = function (expression, sqlcommand, data) {
         let myArray;
         var regex = new RegExp('#{([a-z.A-Z0-9_]+)}', 'ig');
-        var expression = text;
-        while ((myArray = regex.exec(text)) !== null) {
+        //var expression = text;
+        while ((myArray = regex.exec(expression)) !== null) {
             var stretch = myArray[0];
             var propertyvalue = this.getValue(data, myArray[1].split('.'));
             if (propertyvalue == null) {
@@ -85,6 +85,7 @@ var No = function () {
     return No;
 }();
 exports.No = No;
+
 class NoSelect extends No{
     constructor(id, resultMap, javaType, mapping) {
         super(id, mapping);
@@ -834,9 +835,9 @@ var TemplateMapManager = function () {
     };
     TemplateMapManager.prototype.getNo = function (fullnameResultMap) {
         var nameNamespace = fullnameResultMap.split('.')[0];
-        var idon = fullnameResultMap.split('.')[1];
+        var id = fullnameResultMap.split('.')[1];
         var mapping = this.mapMapping[nameNamespace];
-        return mapping.getNo(idon);
+        return mapping.getNo(id);
     };
     TemplateMapManager.prototype.insert = function (fullname, object) {
         return new Promise((resolve,reject)=>{
@@ -912,7 +913,7 @@ var TemplateMapManager = function () {
         return this.context().getConnected(callback,poolObj);
     };
     TemplateMapManager.prototype.transaction = function (callback) {
-        return this.context().initiationTranslation(callback);
+        return this.context().initiationTransaction(callback);
     };
     return TemplateMapManager;
 }();
@@ -938,8 +939,8 @@ class Mapping{
     getResultMap (nameResultMap) {
         return this.resultsMapsPorId[nameResultMap];
     }
-    getNo (idon) {
-        return this.nosPorId[idon];
+    getNo (id) {
+        return this.nosPorId[id];
     }
 }
 exports.Mapping = Mapping;

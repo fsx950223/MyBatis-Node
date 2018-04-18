@@ -26,7 +26,7 @@ Context.prototype = {
             this.uploaded(connection);
         });
     },
-    initiationTranslation(callback) {
+    initiationTransaction(callback) {
         const withchange=(callback)=> {
             this.connection.beginTransaction(()=> {
                 return callback(this.connection, (success, error)=> {
