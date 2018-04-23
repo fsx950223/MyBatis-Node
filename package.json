@@ -3,6 +3,7 @@
   "description": "MyBatisNodeJs is a port from the The MyBatis Java data mapper framework for Node.Js.",
   "version": "0.0.28",
   "dependencies": {
+    "@types/uuid": "^3.4.3",
     "@types/xmldom": "^0.1.29",
     "moment": "*",
     "string": "*",
