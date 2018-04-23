@@ -344,10 +344,10 @@ class Main {
         this.pool = pool;
         this.context = new Context();
     }
-    public read(name, gchild, mapping) {
-        const id = gchild.getAttributeNode("id").value;
+    public read(name, gchild:Node&ChildNode, mapping) {
+        const id = (<Element>gchild).getAttributeNode("id").value;
         const incharge = new No(id, mapping);
-        for (const no of Array(gchild.childNodes)) {
+        for (const no of Array.from(gchild.childNodes)) {
             if (no.nodeName == "choose") {
                 this.readChoose("choose", no, incharge, mapping);
             } else if (no.nodeName == "if") {

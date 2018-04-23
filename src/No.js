@@ -320,7 +320,7 @@ class Main {
     read(name, gchild, mapping) {
         const id = gchild.getAttributeNode("id").value;
         const incharge = new No(id, mapping);
-        for (const no of Array(gchild.childNodes)) {
+        for (const no of Array.from(gchild.childNodes)) {
             if (no.nodeName == "choose") {
                 this.readChoose("choose", no, incharge, mapping);
             }
