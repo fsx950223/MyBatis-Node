@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "types": ["reflect-metadata"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "experimentalDecorators":true,
+    "emitDecoratorMetadata": true,
+    "sourceMap": true,
+    "declaration": false
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

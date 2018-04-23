@@ -5,12 +5,14 @@
   "dependencies": {
     "moment": "*",
     "string": "*",
+    "tslint": "^5.9.1",
     "uuid": "^3.2.1",
     "xmldom": "*"
   },
   "main": "src/No.js",
   "scripts": {
-    "test": "for f in tests/*; do echo \"$f\"; node \"$f\"; done; echo 'passed!'; exit 0"
+    "test": "for f in tests/*; do echo \"$f\"; node \"$f\"; done; echo 'passed!'; exit 0",
+    "lint": "tslint --fix src/**/*.ts"
   },
   "repository": {
     "type": "git",
@@ -32,5 +34,9 @@
   "license": "BSD-2-Clause",
   "bugs": {
     "url": "https://github.com/fsx950223/MyBatisNodeJs/issues"
+  },
+  "devDependencies": {
+    "@types/node": "^9.6.6",
+    "typescript": "^2.8.3"
   }
 }
