@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "types": ["reflect-metadata"],
     "module": "commonjs",
     "moduleResolution": "node",
     "experimentalDecorators":true,
     "emitDecoratorMetadata": true,
     "sourceMap": true,
-    "declaration": false
+    "declaration": false,
+    "noImplicitAny":false,
   },
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
     "node_modules"
   ]
