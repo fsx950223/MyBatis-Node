@@ -320,7 +320,7 @@ class Main {
     read(name, gchild, mapping) {
         const id = gchild.getAttributeNode("id").value;
         const incharge = new No(id, mapping);
-        for (const no of gchild.childNodes) {
+        for (const no of Array(gchild.childNodes)) {
             if (no.nodeName == "choose") {
                 this.readChoose("choose", no, incharge, mapping);
             }
@@ -445,7 +445,7 @@ class Main {
         }
         const we = xmlDoc.documentElement.childNodes;
         const mapping = new Mapping(xmlDoc.documentElement.getAttributeNode("namespace").value);
-        for (const noXml of we) {
+        for (const noXml of Array.from(we)) {
             if (noXml.nodeName != "#text" && noXml.nodeName != "#comment") {
                 const no = this.read(noXml.nodeName, noXml, mapping);
                 mapping.add(no);

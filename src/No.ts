@@ -348,7 +348,7 @@ class Main {
     public read(name, gchild, mapping) {
         const id = gchild.getAttributeNode("id").value;
         const incharge = new No(id, mapping);
-        for (const no of gchild.childNodes) {
+        for (const no of Array(gchild.childNodes)) {
             if (no.nodeName == "choose") {
                 this.readChoose("choose", no, incharge, mapping);
             } else if (no.nodeName == "if") {
