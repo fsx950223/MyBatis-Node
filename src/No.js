@@ -358,13 +358,22 @@ class Main {
         const mapNos = {};
         const templateManager = new TemplateMapManager(this.context, this.pool);
         const models = {};
-        const files = fs.readdirSync(dir_xml);
-        for (const prop in files) {
-            const archive = files[prop];
-            const mapping = this.processFile(dir_xml + archive);
-            templateManager.add(mapping);
-        }
-        return templateManager;
+        fs.stat(dir_xml, (err, stats) => {
+            if (stats.isFile()) {
+                const mapping = this.processFile(dir_xml);
+                templateManager.add(mapping);
+                return templateManager;
+            }
+            else if (stats.isDirectory()) {
+                const files = fs.readdirSync(dir_xml);
+                for (const prop in files) {
+                    const archive = files[prop];
+                    const mapping = this.processFile(dir_xml + archive);
+                    templateManager.add(mapping);
+                }
+                return templateManager;
+            }
+        });
     }
     processFile(filename) {
         if (fs.lstatSync(filename).isDirectory()) {
