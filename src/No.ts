@@ -392,7 +392,7 @@ class Main {
                 const files = fs.readdirSync(dir_xml);
                 for (const prop in files) {
                     const archive = files[prop];
-                    const mapping = this.processFile(dir_xml + archive);
+                    const mapping = this.processFile(path.resolve(dir_xml,archive));
                     templateManager.add(mapping);
                 }
                 return templateManager;

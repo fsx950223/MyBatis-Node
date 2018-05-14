@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
 const moment = require("moment");
+const path = require("path");
 const s = require("string");
 const util = require("util");
 const xmldom_1 = require("xmldom");
@@ -368,7 +369,7 @@ class Main {
                 const files = fs.readdirSync(dir_xml);
                 for (const prop in files) {
                     const archive = files[prop];
-                    const mapping = this.processFile(dir_xml + archive);
+                    const mapping = this.processFile(path.resolve(dir_xml, archive));
                     templateManager.add(mapping);
                 }
                 return templateManager;
