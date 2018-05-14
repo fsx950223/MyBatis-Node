@@ -18,20 +18,10 @@ class SqlCommand {
 class No {
     constructor(id, mapping) {
         this.id = id;
-        this.mapping = mapping;
         this.children = [];
     }
     add(no) {
         this.children.push(no);
-    }
-    print() {
-        if (this.id) {
-            console.log(this.id);
-        }
-        for (const i in this.children) {
-            const noson = this.children[i];
-            noson.print();
-        }
     }
     getSql(sqlcommand, data) {
         for (const prop in this.children) {
@@ -43,16 +33,12 @@ class No {
         return sqlcommand;
     }
     getValue(data, path) {
-        let i, len = path.length;
-        for (i = 0; typeof data === "object" && i < len; ++i) {
+        for (let i = 0; typeof data === "object" && i < path.length; ++i) {
             if (data) {
                 data = data[path[i]];
             }
         }
         return data;
-    }
-    getFullName() {
-        return this.mapping.name + "." + this.id;
     }
     processexpression(expression, sqlcommand, data) {
         let myArray;
@@ -60,19 +46,7 @@ class No {
         while ((myArray = regex.exec(expression)) !== null) {
             const stretch = myArray[0];
             const propertyvalue = this.getValue(data, myArray[1].split("."));
-            if (propertyvalue == null) {
-                expression = expression.replace(stretch, "?");
-                sqlcommand.addParameter(null);
-            }
-            else if (typeof propertyvalue === "number") {
-                expression = expression.replace(stretch, "?");
-                sqlcommand.addParameter(propertyvalue);
-            }
-            else if (typeof propertyvalue === "string") {
-                expression = expression.replace(stretch, "?");
-                sqlcommand.addParameter(propertyvalue);
-            }
-            else if (typeof propertyvalue === "boolean") {
+            if (propertyvalue == null || typeof propertyvalue === "number" || typeof propertyvalue === "boolean" || typeof propertyvalue === "string") {
                 expression = expression.replace(stretch, "?");
                 sqlcommand.addParameter(propertyvalue);
             }
@@ -92,9 +66,6 @@ class NoString extends No {
     constructor(text, mapping) {
         super("", mapping);
         this.text = text.trim();
-    }
-    print() {
-        console.log(this.text);
     }
     getSql(sqlcommand, data) {
         sqlcommand.sql += super.processexpression(this.text, sqlcommand, data) + " ";
@@ -151,9 +122,6 @@ class NoWhen extends No {
         }
         this.expressionTest = s(this.expressionTest).replaceAll("and", "&&").toString();
     }
-    print() {
-        console.log("when(" + this.expressionTest + "): " + this.text);
-    }
 }
 class NoForEach extends No {
     constructor(item, index, separator, opening, closure, text, collection, mapping) {
@@ -177,8 +145,7 @@ class NoForEach extends No {
                 return this.opening + this.closure;
             }
         }
-        for (let i = 0; i < collection.length; i++) {
-            const item = collection[i];
+        for (const item of collection) {
             let myArray;
             const regex = new RegExp("#{([a-z.A-Z]+)}", "ig");
             const expression = this.text;
@@ -187,15 +154,7 @@ class NoForEach extends No {
                 const stretch = myArray[0];
                 const property = myArray[1].replace(this.item + ".", "");
                 const propertyvalue = this.getValue(item, property.split("."));
-                if (typeof propertyvalue == "number") {
-                    newexpression = newexpression.replace(stretch, "?");
-                    sqlcommand.addParameter(propertyvalue);
-                }
-                else if (typeof propertyvalue == "string") {
-                    newexpression = newexpression.replace(stretch, "?");
-                    sqlcommand.addParameter(propertyvalue);
-                }
-                else if (typeof propertyvalue == "boolean") {
+                if (typeof propertyvalue == "number" || typeof propertyvalue == "string" || typeof propertyvalue == "boolean") {
                     newexpression = newexpression.replace(stretch, "?");
                     sqlcommand.addParameter(propertyvalue);
                 }
@@ -224,9 +183,6 @@ class NoIf extends No {
             this.expressionTest = this.expressionTest.replace(identifier, "data." + identifier);
         }
     }
-    print() {
-        console.log("if(" + this.expressionTest + "): " + this.text);
-    }
     getSql(sqlcommand, data) {
         const expression = this.expressionTest.replace("#{", "data.").replace("}", "");
         try {
@@ -248,9 +204,6 @@ class NoOtherwise extends No {
         super("", mapping);
         this.text = text;
     }
-    print() {
-        console.log("otherwise(" + this.text + ")");
-    }
     getSql(sqlcommand, data) {
         let myArray;
         const regex = new RegExp("#{([a-z.A-Z]+)}", "ig");
@@ -258,15 +211,7 @@ class NoOtherwise extends No {
         while ((myArray = regex.exec(this.text)) !== null) {
             const stretch = myArray[0];
             const propertyvalue = this.getValue(data, myArray[1].split("."));
-            if (typeof propertyvalue == "number") {
-                expression = expression.replace(stretch, "?");
-                sqlcommand.addParameter(propertyvalue);
-            }
-            else if (typeof propertyvalue == "string") {
-                expression = expression.replace(stretch, "?");
-                sqlcommand.addParameter(propertyvalue);
-            }
-            else if (typeof propertyvalue == "boolean") {
+            if (typeof propertyvalue == "number" || typeof propertyvalue == "string" || typeof propertyvalue == "boolean") {
                 expression = expression.replace(stretch, "?");
                 sqlcommand.addParameter(propertyvalue);
             }
@@ -279,9 +224,6 @@ class NoProperty {
         this.name = name;
         this.column = column;
         this.prefix = prefix;
-    }
-    print() {
-        console.log(this.name + " -> " + this.getColumn());
     }
     getColumn(prefix) {
         return prefix ? prefix + this.column : this.column;
@@ -301,13 +243,6 @@ class NoDiscriminator {
     add(noCaseDiscriminator) {
         this.cases.push(noCaseDiscriminator);
     }
-    print() {
-        console.log("discriminator(" + this.javatype + " " + this.column + ")");
-        for (const i in this.cases) {
-            const nochase = this.cases[i];
-            nochase.print();
-        }
-    }
     getColumn(prefix) {
         return prefix ? prefix + this.column : this.column;
     }
@@ -322,13 +257,13 @@ class Main {
         const incharge = new No(id, mapping);
         for (const no of Array.from(gchild.childNodes)) {
             if (no.nodeName == "choose") {
-                this.readChoose("choose", no, incharge, mapping);
+                this.readChoose(no, incharge, mapping);
             }
             else if (no.nodeName == "if") {
-                this.readit("choose", no, incharge, mapping);
+                this.readIf(no, incharge, mapping);
             }
             else if (no.nodeName == "foreach") {
-                this.readForEach("foreach", no, incharge, mapping);
+                this.readForEach(no, incharge, mapping);
             }
             else {
                 if (no.hasChildNodes() == false) {
@@ -339,7 +274,7 @@ class Main {
         }
         return incharge;
     }
-    readForEach(name, no, nomain, mapping) {
+    readForEach(no, nomain, mapping) {
         let valueSeparador = "";
         if (no.getAttributeNode("separator")) {
             valueSeparador = no.getAttributeNode("separator").value;
@@ -363,18 +298,18 @@ class Main {
         const noday = new NoForEach(no.getAttributeNode("item").value, valueIndex, valueSeparador, valueAverage, closingvalue, no.textContent, valueCollection, mapping);
         nomain.add(noday);
     }
-    readit(name, no, nomain, mapping) {
+    readIf(no, nomain, mapping) {
         const noIf = new NoIf(no.getAttributeNode("test").value, no.childNodes[0].toString(), mapping);
         for (let i = 0; i < no.childNodes.length; i++) {
             const noson = no.childNodes[i];
             if (noson.nodeName == "choose") {
-                this.readChoose("choose", noson, noIf, mapping);
+                this.readChoose(noson, noIf, mapping);
             }
             else if (noson.nodeName == "if") {
-                this.readit("choose", noson, noIf, mapping);
+                this.readIf(noson, noIf, mapping);
             }
             else if (noson.nodeName == "foreach") {
-                this.readForEach("foreach", noson, noIf, mapping);
+                this.readForEach(noson, noIf, mapping);
             }
             else {
                 if (noson.hasChildNodes() == false) {
@@ -385,13 +320,11 @@ class Main {
         }
         nomain.add(noIf);
     }
-    readChoose(name, no, nomain, mapping) {
+    readChoose(no, nomain, mapping) {
         const nohead = new NoChoose(mapping);
-        for (let i = 0; i < no.childNodes.length; i++) {
-            const children = no.childNodes;
-            const noson = children[i];
+        for (const noson of no.childNodes) {
             if (noson.nodeName == "when") {
-                nohead.add(this.readNoWhen("when", noson, no, mapping));
+                nohead.add(this.readNoWhen(noson, no, mapping));
             }
             else if (noson.nodeName == "otherwise") {
                 nohead.add(new NoOtherwise(noson.childNodes[0].toString(), mapping));
@@ -399,19 +332,18 @@ class Main {
         }
         nomain.add(nohead);
     }
-    readNoWhen(name, no, noPrivate, mapping) {
+    readNoWhen(no, noPrivate, mapping) {
         const expressionTest = no.getAttributeNode("test").value;
         const nowhen = new NoWhen(expressionTest, "", mapping);
-        for (let i = 0; i < no.childNodes.length; i++) {
-            const noson = no.childNodes[i];
+        for (const noson of no.childNodes) {
             if (noson.nodeName == "choose") {
-                this.readChoose("choose", noson, nowhen, mapping);
+                this.readChoose(noson, nowhen, mapping);
             }
             else if (noson.nodeName == "if") {
-                this.readit("choose", noson, nowhen, mapping);
+                this.readIf(noson, nowhen, mapping);
             }
             else if (noson.nodeName == "foreach") {
-                this.readForEach("foreach", noson, nowhen, mapping);
+                this.readForEach(noson, nowhen, mapping);
             }
             else {
                 if (noson.hasChildNodes() == false) {
@@ -480,8 +412,8 @@ class TemplateMapManager {
             const no = this.getNo(fullname);
             const sqlcommand = new SqlCommand();
             no.getSql(sqlcommand, object);
-            this.connection(function (connection) {
-                connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
+            this.connection((connection) => {
+                connection.query(sqlcommand.sql, sqlcommand.parameters, (err, rows, fields) => {
                     if (err) {
                         reject(err);
                     }
@@ -495,7 +427,7 @@ class TemplateMapManager {
             const no = this.getNo(fullname);
             const sqlcommand = new SqlCommand();
             const sql = no.getSql(sqlcommand, object);
-            this.connection(function (connection) {
+            this.connection((connection) => {
                 connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
                     if (err) {
                         reject(err);
@@ -520,23 +452,20 @@ class TemplateMapManager {
             });
         });
     }
-    selectOne(fullname, data) {
-        return new Promise((resolve, reject) => {
-            this.selectList(fullname, data).then((objects) => {
-                if (objects.length == 1) {
-                    resolve(objects[0]);
-                }
-                resolve(null);
-            });
-        });
+    async selectOne(fullname, data) {
+        const objects = await this.selectList(fullname, data);
+        if (objects.length == 1) {
+            return objects[0];
+        }
+        return null;
     }
-    selectList(fullname, data) {
+    async selectList(fullname, data) {
         return new Promise((resolve, reject) => {
             const no = this.getNo(fullname);
             const sqlcommand = new SqlCommand();
             no.getSql(sqlcommand, data);
-            this.connection(function (connection) {
-                connection.query(sqlcommand.sql, sqlcommand.parameters, function (err, rows, fields) {
+            this.connection(connection => {
+                connection.query(sqlcommand.sql, sqlcommand.parameters, (err, rows, fields) => {
                     if (err) {
                         reject(err);
                     }
@@ -559,7 +488,6 @@ class Mapping {
         this.nosPorId = {};
     }
     add(noson) {
-        noson.mapping = this;
         this.children.push(noson);
         this.nosPorId[noson.id] = noson;
     }

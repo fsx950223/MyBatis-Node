@@ -23,7 +23,6 @@ class No {
     public children;
     constructor(id, mapping) {
         this.id = id;
-        this.mapping = mapping;
         this.children = [];
     }
     public add(no) {
@@ -45,9 +44,6 @@ class No {
             }
         }
         return data;
-    }
-    public getFullName() {
-        return this.mapping.name + "." + this.id;
     }
     public processexpression(expression, sqlcommand, data) {
         let myArray;
@@ -485,23 +481,20 @@ class TemplateMapManager {
             });
         });
     }
-    public selectOne(fullname, data) {
-        return new Promise((resolve, reject) => {
-            this.selectList(fullname, data).then((objects) => {
-                if ((objects as any[]).length == 1) {
-                    resolve(objects[0]);
-                }
-                resolve(null);
-            });
-        });
+    public async selectOne(fullname, data) {
+        const objects=await this.selectList(fullname, data)
+        if ((objects as any[]).length == 1) {
+            return objects[0];
+        }
+        return null;
     }
-    public selectList(fullname, data) {
+    public async selectList(fullname, data) {
         return new Promise((resolve, reject) => {
             const no = this.getNo(fullname);
             const sqlcommand = new SqlCommand();
             no.getSql(sqlcommand, data);
-            this.connection(function(connection) {
-                connection.query(sqlcommand.sql, sqlcommand.parameters, function(err, rows, fields) {
+            this.connection(connection=> {
+                connection.query(sqlcommand.sql, sqlcommand.parameters, (err, rows, fields)=> {
                     if (err) {
                         reject(err);
                     }
@@ -528,7 +521,6 @@ class Mapping {
         this.nosPorId = {};
     }
     public add(noson) {
-        noson.mapping = this;
         this.children.push(noson);
         this.nosPorId[noson.id] = noson;
     }
