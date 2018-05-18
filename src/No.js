@@ -220,34 +220,6 @@ class NoOtherwise extends No {
         sqlcommand.sql += expression + " ";
     }
 }
-class NoProperty {
-    constructor(name, column, prefix) {
-        this.name = name;
-        this.column = column;
-        this.prefix = prefix;
-    }
-    getColumn(prefix) {
-        return prefix ? prefix + this.column : this.column;
-    }
-}
-class NoPropertyId extends NoProperty {
-    constructor(name, column) {
-        super(name, column);
-    }
-}
-class NoDiscriminator {
-    constructor(javatype, column) {
-        this.javatype = javatype;
-        this.column = column;
-        this.cases = [];
-    }
-    add(noCaseDiscriminator) {
-        this.cases.push(noCaseDiscriminator);
-    }
-    getColumn(prefix) {
-        return prefix ? prefix + this.column : this.column;
-    }
-}
 class Main {
     constructor(pool) {
         this.pool = pool;
@@ -346,11 +318,9 @@ class Main {
             else if (noson.nodeName == "foreach") {
                 this.readForEach(noson, nowhen, mapping);
             }
-            else {
-                if (noson.hasChildNodes() == false) {
-                    const noString = new NoString(noson.textContent, mapping);
-                    nowhen.add(noString);
-                }
+            else if (noson.hasChildNodes() == false) {
+                const noString = new NoString(noson.textContent, mapping);
+                nowhen.add(noString);
             }
         }
         return nowhen;
@@ -468,7 +438,7 @@ class TemplateMapManager {
         }
         return null;
     }
-    async selectList(fullname, data) {
+    selectList(fullname, data) {
         return new Promise((resolve, reject) => {
             const no = this.getNo(fullname);
             const sqlcommand = new SqlCommand();

@@ -242,43 +242,6 @@ class NoOtherwise extends No {
     }
 }
 
-class NoProperty {
-    public name;
-    public column;
-    public prefix;
-    constructor(name, column, prefix?) {
-        this.name = name;
-        this.column = column;
-        this.prefix = prefix;
-    }
-    public getColumn(prefix?) {
-        return prefix ? prefix + this.column : this.column;
-    }
-}
-
-class NoPropertyId extends NoProperty {
-    constructor(name, column) {
-        super(name, column);
-    }
-}
-
-class NoDiscriminator {
-    public javatype;
-    public column;
-    public cases;
-    constructor(javatype, column) {
-        this.javatype = javatype;
-        this.column = column;
-        this.cases = [];
-    }
-    public add(noCaseDiscriminator) {
-        this.cases.push(noCaseDiscriminator);
-    }
-    public getColumn(prefix) {
-        return prefix ? prefix + this.column : this.column;
-    }
-}
-
 class Main {
     public context;
     public pool;
@@ -369,11 +332,9 @@ class Main {
                 this.readIf(noson, nowhen, mapping);
             } else if (noson.nodeName == "foreach") {
                 this.readForEach(noson, nowhen, mapping);
-            } else {
-                if (noson.hasChildNodes() == false) {
-                    const noString = new NoString(noson.textContent, mapping);
-                    nowhen.add(noString);
-                }
+            } else if (noson.hasChildNodes() == false) {
+                const noString = new NoString(noson.textContent, mapping);
+                nowhen.add(noString);
             }
         }
         return nowhen;
@@ -387,8 +348,7 @@ class Main {
             const mapping = this.processFile(dir_xml);
             templateManager.add(mapping);
             return templateManager;
-        }
-        else if(stats.isDirectory()){
+        }else if(stats.isDirectory()){
             const files = fs.readdirSync(dir_xml);
             for (const prop in files) {
                 const archive = files[prop];
@@ -496,7 +456,7 @@ class TemplateMapManager {
         }
         return null;
     }
-    public async selectList(fullname, data) {
+    public selectList(fullname, data) {
         return new Promise((resolve, reject) => {
             const no = this.getNo(fullname);
             const sqlcommand = new SqlCommand();
