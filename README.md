@@ -34,7 +34,7 @@ global.pool = mysql.createPool({
 3) To process the xml mapping files and get an sessionFactory instance:
 
 ```javascript
-var mybatis = require('mybatisnodejs');
+var mybatis = require('mybatis-node');
 var sessionFactory  = new mybatis.Main().process(dir_xml);
 global.sessionFactory = sessionFactory;
 ```
