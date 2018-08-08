@@ -40,7 +40,7 @@ The variable sessionFactory has methods for selectOne, selectList, insert, updat
 4) Select one object:
 
 ```javascript
-sessionFactory.selectOne('user.select', {id: 1}, pool, function(user) {
+sessionFactory.selectOne('user.select', {id: 1}).then((user)=> {
    //console.log(user);
 });
 ```
