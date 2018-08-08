@@ -15,8 +15,8 @@ http://mybatis.github.io/mybatis-3/
 2) Create a connection to your database
 
 ```javascript
-var mysql = require('mysql');
-global.pool = mysql.createPool({
+const mysql = require('mysql');
+const pool = mysql.createPool({
     host     : 'localhost',
     user     : '****',
     password : '****',
@@ -29,9 +29,8 @@ global.pool = mysql.createPool({
 3) To process the xml mapping files and get an sessionFactory instance:
 
 ```javascript
-var mybatis = require('mybatis-node');
-var sessionFactory  = new mybatis().process(dir_xml);
-global.sessionFactory = sessionFactory;
+const mybatis = require('mybatis-node');
+const sessionFactory  = new mybatis(pool).process(dir_xml);
 ```
 
 The string variable dir_xml points to the MyBatis mapping files directory.
