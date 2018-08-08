@@ -5,11 +5,6 @@ MyBatisNodeJs is a port from the The MyBatis data mapper framework for Node.Js.
 
 MyBatisNodeJs understands the same xml files as input like MyBatis Java.
 
-MyBatisNodeJs assumes that your POJO's (domains objects) exist on the directory domain:
-
-- Project
-   domain (put your domain classes here)
-
 * How to use:
 
 1) Write your MyBatis mapping files:
