@@ -34,9 +34,26 @@ class Context {
     public initiationTransaction(callback, pool) {
         const withchange = (callback) => {
             this.connection.beginTransaction(() => {
-                return callback(this.connection, (success, error) => {
+                const res=callback(this.connection, (success, error) => {
                     this.commit(success);
                 });
+                if(res instanceof Promise){
+                    res.then(()=> {
+                        this.connection.commit((err)=>{
+                            if (err) {
+                                return this.connection.rollback(function() {
+                                  throw err;
+                                });
+                            }
+                        })
+                      }).catch(err=>{
+                        return this.connection.rollback(function() {
+                            throw err;
+                        });
+                    })
+                }else{
+                    return res
+                }
             });
         };
         if (this.connection) {
