@@ -30,7 +30,7 @@ global.pool = mysql.createPool({
 
 ```javascript
 var mybatis = require('mybatis-node');
-var sessionFactory  = new mybatis.Main().process(dir_xml);
+var sessionFactory  = new mybatis().process(dir_xml);
 global.sessionFactory = sessionFactory;
 ```
 

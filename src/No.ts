@@ -498,4 +498,4 @@ class Mapping {
     }
 }
 
-export {Main};
+export default Main;
