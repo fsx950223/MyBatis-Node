@@ -35,22 +35,18 @@ global.pool = mysql.createPool({
 
 ```javascript
 var mybatis = require('mybatisnodejs');
-
-app.use(mybatis.Contexto.domainMiddleware);
-app.use(mybatis.Contexto.middlewareOnError);
-
-var sessionFactory  = new mybatis.Principal().processe(dir_xml);
+var sessionFactory  = new mybatis.Main().process(dir_xml);
 global.sessionFactory = sessionFactory;
 ```
 
 The string variable dir_xml points to the MyBatis mapping files directory.
 
-The variable sessionFactory has methods for selectOne, selectMany, insert, update or delete objects.
+The variable sessionFactory has methods for selectOne, selectList, insert, update or delete objects.
 
 4) Select one object:
 
 ```javascript
-sessionFactory.selecioneUm('user.select', {id: 1}, pool, function(user) {
+sessionFactory.selectOne('user.select', {id: 1}, pool, function(user) {
    //console.log(user);
 });
 ```
